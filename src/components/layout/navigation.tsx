@@ -41,11 +41,13 @@ export function Sidebar() {
       {/* Logo */}
       <div className="flex h-16 items-center px-6 border-b border-[#0D3B73]">
         <div className="flex items-center gap-3">
-          <img
-            src="/logo.png"
-            alt="Stochastic4"
-            className="h-8 w-8 rounded-md object-contain"
-          />
+          <div className="flex h-8 w-8 items-center justify-center rounded-md bg-white">
+            <img
+              src="/logo.png"
+              alt="Stochastic4"
+              className="h-6 w-6 object-contain"
+            />
+          </div>
           <span className="font-semibold text-lg">Stochastic4</span>
         </div>
       </div>

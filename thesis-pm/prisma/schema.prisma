@@ -1,0 +1,144 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum Role {
+  ADMIN
+  MEMBER
+}
+
+enum TaskStatus {
+  BACKLOG
+  TODO
+  IN_PROGRESS
+  IN_REVIEW
+  DONE
+  BLOCKED
+}
+
+enum TaskType {
+  SPRINT_TASK
+  GENERAL_TASK
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+model User {
+  id            String   @id @default(cuid())
+  name          String
+  email         String   @unique
+  passwordHash  String
+  role          Role     @default(MEMBER)
+
+  assignedTasks Task[]   @relation("assignee")
+  reportedTasks Task[]   @relation("reporter")
+  comments      Comment[]
+  statusEvents  StatusEvent[]
+  attachments   Attachment[]
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Sprint {
+  id        String   @id @default(cuid())
+  name      String
+  startDate DateTime
+  endDate   DateTime
+
+  tasks     Task[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Task {
+  id          String     @id @default(cuid())
+  title       String
+  description String     @default("")
+  status      TaskStatus @default(BACKLOG)
+  type        TaskType
+  priority    Priority   @default(MEDIUM)
+
+  startDate   DateTime?
+  dueDate     DateTime?
+
+  sprintId    String?
+  sprint      Sprint?    @relation(fields: [sprintId], references: [id])
+
+  assigneeId  String?
+  assignee    User?      @relation("assignee", fields: [assigneeId], references: [id])
+
+  reporterId  String
+  reporter    User       @relation("reporter", fields: [reporterId], references: [id])
+
+  parentId    String?
+  parent      Task?      @relation("subtasks", fields: [parentId], references: [id])
+  subtasks    Task[]     @relation("subtasks")
+
+  comments    Comment[]
+  attachments Attachment[]
+  statusLog   StatusEvent[]
+
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@index([status])
+  @@index([assigneeId])
+  @@index([sprintId])
+  @@index([type])
+  @@index([parentId])
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  taskId    String
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id])
+  body      String
+  createdAt DateTime @default(now())
+
+  @@index([taskId])
+}
+
+model Attachment {
+  id           String   @id @default(cuid())
+  taskId       String
+  task         Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  originalName String
+  storedName   String
+  mimeType     String
+  sizeBytes    Int
+  uploadedById String
+  uploadedBy   User     @relation(fields: [uploadedById], references: [id])
+  createdAt    DateTime @default(now())
+
+  @@index([taskId])
+}
+
+model StatusEvent {
+  id        String     @id @default(cuid())
+  taskId    String
+  task      Task       @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  actorId   String
+  actor     User       @relation(fields: [actorId], references: [id])
+
+  from      TaskStatus
+  to        TaskStatus
+  at        DateTime   @default(now())
+
+  @@index([taskId])
+}

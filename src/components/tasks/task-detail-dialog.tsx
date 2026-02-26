@@ -588,10 +588,21 @@ export function TaskDetailDialog({
                           <SelectValue placeholder="Unassigned" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="none">Unassigned</SelectItem>
+                          <SelectItem value="none">
+                            <span className="flex items-center gap-2 text-muted-foreground">
+                              <User className="h-3.5 w-3.5" />
+                              Unassigned
+                            </span>
+                          </SelectItem>
                           {users.map((u) => (
                             <SelectItem key={u.id} value={u.id}>
-                              {u.name}
+                              <span className="flex items-center gap-2">
+                                <AvatarInitials
+                                  name={u.name}
+                                  className="h-5 w-5 text-[9px]"
+                                />
+                                {u.name}
+                              </span>
                             </SelectItem>
                           ))}
                         </SelectContent>

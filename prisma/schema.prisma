@@ -41,7 +41,7 @@ model User {
   passwordHash  String
   role          Role     @default(MEMBER)
 
-  assignedTasks Task[]   @relation("assignee")
+  assignedTasks Task[]   @relation("TaskAssignees")
   reportedTasks Task[]   @relation("reporter")
   comments      Comment[]
   statusEvents  StatusEvent[]
@@ -77,8 +77,7 @@ model Task {
   sprintId    String?
   sprint      Sprint?    @relation(fields: [sprintId], references: [id])
 
-  assigneeId  String?
-  assignee    User?      @relation("assignee", fields: [assigneeId], references: [id])
+  assignees   User[]     @relation("TaskAssignees")
 
   reporterId  String
   reporter    User       @relation("reporter", fields: [reporterId], references: [id])
@@ -95,7 +94,6 @@ model Task {
   updatedAt   DateTime   @updatedAt
 
   @@index([status])
-  @@index([assigneeId])
   @@index([sprintId])
   @@index([type])
   @@index([parentId])

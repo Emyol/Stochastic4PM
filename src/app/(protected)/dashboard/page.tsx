@@ -26,7 +26,7 @@ interface DashboardTask {
   priority: string;
   dueDate: string | null;
   type: string;
-  assignee: { id: string; name: string } | null;
+  assignees: Array<{ id: string; name: string }>;
   sprint: { id: string; name: string } | null;
 }
 
@@ -231,7 +231,8 @@ export default function DashboardPage() {
 
       {/* Stats cards */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
-        <Card className="relative overflow-hidden">
+        <Card className="relative overflow-hidden group hover:shadow-lg transition-all duration-300">
+          <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-[#0F4C8A] to-[#1366A6]" />
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
@@ -242,14 +243,15 @@ export default function DashboardPage() {
                   Total Tasks
                 </p>
               </div>
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#CFE8FF]">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-[#CFE8FF] to-[#E8F4FF] group-hover:scale-110 transition-transform duration-300">
                 <Target className="h-5 w-5 text-[#0F4C8A]" />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="relative overflow-hidden">
+        <Card className="relative overflow-hidden group hover:shadow-lg transition-all duration-300">
+          <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-green-500 to-emerald-400" />
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
@@ -260,14 +262,15 @@ export default function DashboardPage() {
                   Completed
                 </p>
               </div>
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-green-100">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-green-100 to-emerald-50 group-hover:scale-110 transition-transform duration-300">
                 <CheckCircle2 className="h-5 w-5 text-green-700" />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="relative overflow-hidden">
+        <Card className="relative overflow-hidden group hover:shadow-lg transition-all duration-300">
+          <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-yellow-500 to-amber-400" />
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
@@ -278,14 +281,15 @@ export default function DashboardPage() {
                   In Progress
                 </p>
               </div>
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-yellow-100">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-yellow-100 to-amber-50 group-hover:scale-110 transition-transform duration-300">
                 <TrendingUp className="h-5 w-5 text-yellow-700" />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="relative overflow-hidden">
+        <Card className="relative overflow-hidden group hover:shadow-lg transition-all duration-300">
+          <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-orange-500 to-amber-400" />
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
@@ -296,14 +300,15 @@ export default function DashboardPage() {
                   Due This Week
                 </p>
               </div>
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-orange-100">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-orange-100 to-amber-50 group-hover:scale-110 transition-transform duration-300">
                 <Calendar className="h-5 w-5 text-orange-700" />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="relative overflow-hidden col-span-2 lg:col-span-1">
+        <Card className="relative overflow-hidden col-span-2 lg:col-span-1 group hover:shadow-lg transition-all duration-300">
+          <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-red-500 to-rose-400" />
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
@@ -314,7 +319,7 @@ export default function DashboardPage() {
                   Blocked
                 </p>
               </div>
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-red-100">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-red-100 to-rose-50 group-hover:scale-110 transition-transform duration-300">
                 <AlertTriangle className="h-5 w-5 text-red-700" />
               </div>
             </div>

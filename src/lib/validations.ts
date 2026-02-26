@@ -45,7 +45,7 @@ export const createTaskSchema = z.object({
   startDate: z.string().nullable().optional(),
   dueDate: z.string().nullable().optional(),
   sprintId: z.string().nullable().optional(),
-  assigneeId: z.string().nullable().optional(),
+  assigneeIds: z.array(z.string()).optional(),
   parentId: z.string().nullable().optional(),
 });
 
@@ -59,7 +59,7 @@ export const updateTaskSchema = z.object({
   startDate: z.string().nullable().optional(),
   dueDate: z.string().nullable().optional(),
   sprintId: z.string().nullable().optional(),
-  assigneeId: z.string().nullable().optional(),
+  assigneeIds: z.array(z.string()).optional(),
 });
 
 // ---------- Comments ----------

@@ -21,7 +21,7 @@ export async function GET(req: NextRequest) {
   const where: Prisma.TaskWhereInput = {};
   if (type) where.type = type as Prisma.EnumTaskTypeFilter["equals"];
   if (sprintId) where.sprintId = sprintId;
-  if (assigneeId) where.assigneeId = assigneeId;
+  if (assigneeId) where.assignees = { some: { id: assigneeId } };
   if (status) where.status = status as Prisma.EnumTaskStatusFilter["equals"];
   if (q) where.title = { contains: q, mode: "insensitive" };
   if (parentId === "null") {
@@ -33,7 +33,7 @@ export async function GET(req: NextRequest) {
   const tasks = await prisma.task.findMany({
     where,
     include: {
-      assignee: { select: { id: true, name: true, email: true } },
+      assignees: { select: { id: true, name: true, email: true } },
       reporter: { select: { id: true, name: true, email: true } },
       sprint: { select: { id: true, name: true } },
       _count: { select: { subtasks: true, comments: true, attachments: true } },
@@ -68,7 +68,7 @@ export async function POST(req: NextRequest) {
     startDate,
     dueDate,
     sprintId,
-    assigneeId,
+    assigneeIds,
     parentId,
   } = parsed.data;
 
@@ -105,12 +105,14 @@ export async function POST(req: NextRequest) {
       startDate: startDate ? new Date(startDate) : null,
       dueDate: dueDate ? new Date(dueDate) : null,
       sprintId: resolvedSprintId || null,
-      assigneeId: assigneeId || null,
+      assignees: {
+        connect: (assigneeIds || []).map((id) => ({ id })),
+      },
       reporterId: user.id,
       parentId: parentId || null,
     },
     include: {
-      assignee: { select: { id: true, name: true, email: true } },
+      assignees: { select: { id: true, name: true, email: true } },
       reporter: { select: { id: true, name: true, email: true } },
     },
   });

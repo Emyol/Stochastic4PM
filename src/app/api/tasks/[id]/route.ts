@@ -17,12 +17,12 @@ export async function GET(
   const task = await prisma.task.findUnique({
     where: { id },
     include: {
-      assignee: { select: { id: true, name: true, email: true } },
+      assignees: { select: { id: true, name: true, email: true } },
       reporter: { select: { id: true, name: true, email: true } },
       sprint: { select: { id: true, name: true } },
       subtasks: {
         include: {
-          assignee: { select: { id: true, name: true, email: true } },
+          assignees: { select: { id: true, name: true, email: true } },
         },
         orderBy: { createdAt: "asc" },
       },
@@ -74,13 +74,16 @@ export async function PATCH(
   }
 
   // Check permissions: ADMIN, assignee, or reporter
-  const existingTask = await prisma.task.findUnique({ where: { id } });
+  const existingTask = await prisma.task.findUnique({
+    where: { id },
+    include: { assignees: { select: { id: true } } },
+  });
   if (!existingTask) {
     return NextResponse.json({ error: "Task not found" }, { status: 404 });
   }
 
   const isAdmin = user.role === "ADMIN";
-  const isAssignee = existingTask.assigneeId === user.id;
+  const isAssignee = existingTask.assignees.some((a) => a.id === user.id);
   const isReporter = existingTask.reporterId === user.id;
   if (!isAdmin && !isAssignee && !isReporter) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
@@ -106,8 +109,10 @@ export async function PATCH(
   if (parsed.data.dueDate !== undefined)
     data.dueDate = parsed.data.dueDate ? new Date(parsed.data.dueDate) : null;
   if (parsed.data.sprintId !== undefined) data.sprintId = parsed.data.sprintId;
-  if (parsed.data.assigneeId !== undefined)
-    data.assigneeId = parsed.data.assigneeId;
+  if (parsed.data.assigneeIds !== undefined)
+    data.assignees = {
+      set: parsed.data.assigneeIds.map((aid: string) => ({ id: aid })),
+    };
 
   // Handle status change → create StatusEvent
   if (
@@ -129,7 +134,7 @@ export async function PATCH(
     where: { id },
     data,
     include: {
-      assignee: { select: { id: true, name: true, email: true } },
+      assignees: { select: { id: true, name: true, email: true } },
       reporter: { select: { id: true, name: true, email: true } },
       sprint: { select: { id: true, name: true } },
     },
@@ -149,7 +154,10 @@ export async function DELETE(
 
   const { id } = await params;
 
-  const task = await prisma.task.findUnique({ where: { id } });
+  const task = await prisma.task.findUnique({
+    where: { id },
+    include: { assignees: { select: { id: true } } },
+  });
   if (!task) {
     return NextResponse.json({ error: "Task not found" }, { status: 404 });
   }
@@ -158,7 +166,7 @@ export async function DELETE(
   if (
     user.role !== "ADMIN" &&
     task.reporterId !== user.id &&
-    task.assigneeId !== user.id
+    !task.assignees.some((a) => a.id === user.id)
   ) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }

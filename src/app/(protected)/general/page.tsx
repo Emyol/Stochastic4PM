@@ -35,7 +35,7 @@ interface GeneralTask {
   status: string;
   priority: string;
   dueDate: string | null;
-  assignee: { id: string; name: string; email: string } | null;
+  assignees: Array<{ id: string; name: string; email: string }>;
   _count: { subtasks: number; comments: number; attachments: number };
 }
 
@@ -127,7 +127,7 @@ export default function GeneralPage() {
           </Select>
           <Button
             onClick={() => setCreateOpen(true)}
-            className="bg-[#0F4C8A] hover:bg-[#0D3B73]"
+            className="bg-gradient-to-r from-[#0F4C8A] to-[#1366A6] hover:from-[#0D3B73] hover:to-[#0F4C8A] shadow-md shadow-[#0F4C8A]/20 hover:shadow-lg hover:shadow-[#0F4C8A]/30 transition-all duration-300"
           >
             <Plus className="h-4 w-4 mr-1" />
             Task
@@ -175,7 +175,7 @@ export default function GeneralPage() {
           )}
           <Button
             onClick={() => setCreateOpen(true)}
-            className="bg-[#0F4C8A] hover:bg-[#0D3B73]"
+            className="bg-gradient-to-r from-[#0F4C8A] to-[#1366A6] hover:from-[#0D3B73] hover:to-[#0F4C8A] shadow-md shadow-[#0F4C8A]/20 transition-all duration-300"
           >
             <Plus className="h-4 w-4 mr-1" />
             Create a task
@@ -271,15 +271,27 @@ export default function GeneralPage() {
                       )}
                     </div>
                     <div>
-                      {task.assignee ? (
+                      {task.assignees.length > 0 ? (
                         <div className="flex items-center gap-1.5">
-                          <AvatarInitials
-                            name={task.assignee.name}
-                            className="h-6 w-6 text-[10px]"
-                          />
-                          <span className="text-xs text-muted-foreground truncate max-w-[60px]">
-                            {task.assignee.name.split(" ")[0]}
-                          </span>
+                          <div className="flex -space-x-1.5">
+                            {task.assignees.slice(0, 3).map((a) => (
+                              <AvatarInitials
+                                key={a.id}
+                                name={a.name}
+                                className="h-6 w-6 text-[10px] ring-1.5 ring-white"
+                              />
+                            ))}
+                            {task.assignees.length > 3 && (
+                              <div className="flex h-6 w-6 items-center justify-center rounded-full bg-gray-200 text-[9px] font-medium text-gray-600 ring-1.5 ring-white">
+                                +{task.assignees.length - 3}
+                              </div>
+                            )}
+                          </div>
+                          {task.assignees.length === 1 && (
+                            <span className="text-xs text-muted-foreground truncate max-w-[60px]">
+                              {task.assignees[0].name.split(" ")[0]}
+                            </span>
+                          )}
                         </div>
                       ) : (
                         <span className="text-xs text-muted-foreground">—</span>
@@ -336,15 +348,27 @@ export default function GeneralPage() {
                           </span>
                         )}
                       </div>
-                      {task.assignee && (
+                      {task.assignees.length > 0 && (
                         <div className="flex items-center gap-1.5 text-xs">
-                          <AvatarInitials
-                            name={task.assignee.name}
-                            className="h-5 w-5 text-[10px]"
-                          />
-                          <span className="text-muted-foreground">
-                            {task.assignee.name}
-                          </span>
+                          <div className="flex -space-x-1">
+                            {task.assignees.slice(0, 2).map((a) => (
+                              <AvatarInitials
+                                key={a.id}
+                                name={a.name}
+                                className="h-5 w-5 text-[10px] ring-1 ring-white"
+                              />
+                            ))}
+                            {task.assignees.length > 2 && (
+                              <div className="flex h-5 w-5 items-center justify-center rounded-full bg-gray-200 text-[8px] font-medium text-gray-600 ring-1 ring-white">
+                                +{task.assignees.length - 2}
+                              </div>
+                            )}
+                          </div>
+                          {task.assignees.length === 1 && (
+                            <span className="text-muted-foreground">
+                              {task.assignees[0].name}
+                            </span>
+                          )}
                         </div>
                       )}
                     </div>

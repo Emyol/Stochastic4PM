@@ -82,7 +82,7 @@ async function main() {
       startDate: daysFromNow(-5),
       dueDate: daysFromNow(-3),
       sprintId: sprint.id,
-      assigneeId: member1.id,
+      assignees: { connect: [{ id: member1.id }] },
       reporterId: pm.id,
     },
   });
@@ -97,7 +97,7 @@ async function main() {
       startDate: daysFromNow(-3),
       dueDate: daysFromNow(1),
       sprintId: sprint.id,
-      assigneeId: member1.id,
+      assignees: { connect: [{ id: member1.id }] },
       reporterId: pm.id,
     },
   });
@@ -112,7 +112,7 @@ async function main() {
       startDate: daysFromNow(-1),
       dueDate: daysFromNow(3),
       sprintId: sprint.id,
-      assigneeId: member2.id,
+      assignees: { connect: [{ id: member2.id }] },
       reporterId: pm.id,
     },
   });
@@ -127,7 +127,7 @@ async function main() {
       startDate: daysFromNow(2),
       dueDate: daysFromNow(7),
       sprintId: sprint.id,
-      assigneeId: member1.id,
+      assignees: { connect: [{ id: member1.id }] },
       reporterId: pm.id,
     },
   });
@@ -142,7 +142,7 @@ async function main() {
       startDate: daysFromNow(5),
       dueDate: daysFromNow(10),
       sprintId: sprint.id,
-      assigneeId: member2.id,
+      assignees: { connect: [{ id: member2.id }] },
       reporterId: pm.id,
     },
   });
@@ -157,7 +157,7 @@ async function main() {
       startDate: daysFromNow(0),
       dueDate: daysFromNow(4),
       sprintId: sprint.id,
-      assigneeId: member2.id,
+      assignees: { connect: [{ id: member2.id }] },
       reporterId: pm.id,
     },
   });
@@ -173,7 +173,7 @@ async function main() {
       startDate: daysFromNow(2),
       dueDate: daysFromNow(4),
       sprintId: sprint.id,
-      assigneeId: member1.id,
+      assignees: { connect: [{ id: member1.id }] },
       reporterId: pm.id,
       parentId: sprintTask4.id,
     },
@@ -189,7 +189,7 @@ async function main() {
       startDate: daysFromNow(3),
       dueDate: daysFromNow(5),
       sprintId: sprint.id,
-      assigneeId: member1.id,
+      assignees: { connect: [{ id: member1.id }] },
       reporterId: pm.id,
       parentId: sprintTask4.id,
     },
@@ -204,7 +204,7 @@ async function main() {
       type: TaskType.GENERAL_TASK,
       priority: Priority.URGENT,
       dueDate: daysFromNow(5),
-      assigneeId: member1.id,
+      assignees: { connect: [{ id: member1.id }] },
       reporterId: pm.id,
     },
   });
@@ -217,7 +217,7 @@ async function main() {
       type: TaskType.GENERAL_TASK,
       priority: Priority.HIGH,
       dueDate: daysFromNow(10),
-      assigneeId: member2.id,
+      assignees: { connect: [{ id: member2.id }] },
       reporterId: pm.id,
     },
   });
@@ -230,7 +230,7 @@ async function main() {
       type: TaskType.GENERAL_TASK,
       priority: Priority.LOW,
       dueDate: daysFromNow(7),
-      assigneeId: pm.id,
+      assignees: { connect: [{ id: pm.id }] },
       reporterId: pm.id,
     },
   });
@@ -243,7 +243,7 @@ async function main() {
       type: TaskType.GENERAL_TASK,
       priority: Priority.MEDIUM,
       dueDate: daysFromNow(20),
-      assigneeId: member1.id,
+      assignees: { connect: [{ id: member1.id }] },
       reporterId: pm.id,
     },
   });

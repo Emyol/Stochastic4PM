@@ -32,6 +32,7 @@ import {
   Layers,
   Flag,
   CircleDot,
+  Sparkles,
 } from "lucide-react";
 
 interface UserOption {
@@ -68,7 +69,7 @@ export function CreateTaskDialog({
   const [startDate, setStartDate] = useState("");
   const [dueDate, setDueDate] = useState("");
   const [sprintId, setSprintId] = useState(defaultSprintId || "");
-  const [assigneeId, setAssigneeId] = useState("");
+  const [assigneeMode, setAssigneeMode] = useState("none");
   const [users, setUsers] = useState<UserOption[]>([]);
   const [sprints, setSprints] = useState<Sprint[]>([]);
   const [loading, setLoading] = useState(false);
@@ -99,99 +100,66 @@ export function CreateTaskDialog({
     setStartDate("");
     setDueDate("");
     setSprintId(defaultSprintId || "");
-    setAssigneeId("");
+    setAssigneeMode("none");
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
-    const isEveryone = assigneeId === "everyone";
+    let assigneeIds: string[] = [];
+    if (assigneeMode === "everyone") {
+      assigneeIds = users.map((u) => u.id);
+    } else if (assigneeMode !== "none") {
+      assigneeIds = [assigneeMode];
+    }
 
-    if (isEveryone) {
-      // Create one task per user
-      let successCount = 0;
-      let failCount = 0;
+    const body: Record<string, unknown> = {
+      title,
+      description,
+      type,
+      priority,
+      status,
+      startDate: startDate || null,
+      dueDate: dueDate || null,
+      assigneeIds,
+    };
+    if (type === "SPRINT_TASK" && sprintId) body.sprintId = sprintId;
+    if (parentId) body.parentId = parentId;
 
-      for (const user of users) {
-        const body: Record<string, unknown> = {
-          title,
-          description,
-          type,
-          priority,
-          status,
-          startDate: startDate || null,
-          dueDate: dueDate || null,
-          assigneeId: user.id,
-        };
-        if (type === "SPRINT_TASK" && sprintId) body.sprintId = sprintId;
-        if (parentId) body.parentId = parentId;
+    const res = await fetch("/api/tasks", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
 
-        const res = await fetch("/api/tasks", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(body),
-        });
-        if (res.ok) successCount++;
-        else failCount++;
-      }
+    setLoading(false);
 
-      setLoading(false);
-
-      if (successCount > 0) {
-        toast.success(
-          `Created ${successCount} task${successCount > 1 ? "s" : ""} for all members`,
-        );
-        if (failCount > 0) toast.error(`${failCount} failed to create`);
-        resetForm();
-        onOpenChange(false);
-        onCreated?.();
-      } else {
-        toast.error("Failed to create tasks");
-      }
+    if (res.ok) {
+      toast.success(
+        assigneeMode === "everyone"
+          ? "Task created and assigned to everyone"
+          : "Task created",
+      );
+      resetForm();
+      onOpenChange(false);
+      onCreated?.();
     } else {
-      // Single task creation
-      const body: Record<string, unknown> = {
-        title,
-        description,
-        type,
-        priority,
-        status,
-        startDate: startDate || null,
-        dueDate: dueDate || null,
-        assigneeId: assigneeId || null,
-      };
-      if (type === "SPRINT_TASK" && sprintId) body.sprintId = sprintId;
-      if (parentId) body.parentId = parentId;
-
-      const res = await fetch("/api/tasks", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
-
-      setLoading(false);
-
-      if (res.ok) {
-        toast.success("Task created");
-        resetForm();
-        onOpenChange(false);
-        onCreated?.();
-      } else {
-        const err = await res.json();
-        toast.error(err.error || "Failed to create task");
-      }
+      const err = await res.json();
+      toast.error(err.error || "Failed to create task");
     }
   };
 
-  const isEveryone = assigneeId === "everyone";
+  const isEveryone = assigneeMode === "everyone";
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
+      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto border-0 shadow-2xl">
+        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#0F4C8A] via-[#1366A6] to-[#4DA0E0] rounded-t-lg" />
+
+        <DialogHeader className="pt-2">
           <DialogTitle className="text-lg font-bold text-[#0A2342] flex items-center gap-2">
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#CFE8FF]">
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-[#CFE8FF] to-[#8CC1F0] shadow-sm">
               <FileText className="h-4 w-4 text-[#0F4C8A]" />
             </div>
             {parentId ? "Create Subtask" : "Create Task"}
@@ -199,7 +167,6 @@ export function CreateTaskDialog({
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-5">
-          {/* Title */}
           <div className="space-y-1.5">
             <Label htmlFor="title" className="text-sm font-medium">
               Title <span className="text-red-500">*</span>
@@ -209,12 +176,11 @@ export function CreateTaskDialog({
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="What needs to be done?"
-              className="h-10"
+              className="h-10 transition-all duration-200 focus:shadow-md focus:shadow-[#1366A6]/10"
               required
             />
           </div>
 
-          {/* Description */}
           <div className="space-y-1.5">
             <Label
               htmlFor="description"
@@ -229,13 +195,12 @@ export function CreateTaskDialog({
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Add details, context, or instructions…"
               rows={3}
-              className="resize-none"
+              className="resize-none transition-all duration-200 focus:shadow-md focus:shadow-[#1366A6]/10"
             />
           </div>
 
-          <Separator />
+          <Separator className="bg-gradient-to-r from-transparent via-border to-transparent" />
 
-          {/* Type & Priority & Status */}
           <div>
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-1.5">
               <Tag className="h-3 w-3" />
@@ -332,7 +297,6 @@ export function CreateTaskDialog({
             </div>
           </div>
 
-          {/* Sprint */}
           {type === "SPRINT_TASK" && !parentId && (
             <div className="space-y-1.5">
               <Label className="text-xs text-muted-foreground flex items-center gap-1">
@@ -353,9 +317,8 @@ export function CreateTaskDialog({
             </div>
           )}
 
-          <Separator />
+          <Separator className="bg-gradient-to-r from-transparent via-border to-transparent" />
 
-          {/* Dates */}
           <div>
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-1.5">
               <CalendarDays className="h-3 w-3" />
@@ -387,9 +350,8 @@ export function CreateTaskDialog({
             </div>
           </div>
 
-          <Separator />
+          <Separator className="bg-gradient-to-r from-transparent via-border to-transparent" />
 
-          {/* Assignee */}
           <div>
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-1.5">
               <User className="h-3 w-3" />
@@ -397,7 +359,7 @@ export function CreateTaskDialog({
             </p>
             <div className="space-y-1.5">
               <Label className="text-xs text-muted-foreground">Assignee</Label>
-              <Select value={assigneeId} onValueChange={setAssigneeId}>
+              <Select value={assigneeMode} onValueChange={setAssigneeMode}>
                 <SelectTrigger className="h-9">
                   <SelectValue placeholder="Unassigned" />
                 </SelectTrigger>
@@ -429,17 +391,18 @@ export function CreateTaskDialog({
                 </SelectContent>
               </Select>
 
-              {/* Everyone info banner */}
               {isEveryone && (
-                <div className="flex items-start gap-2 p-2.5 bg-blue-50 rounded-lg border border-blue-200 mt-2">
-                  <Users className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                <div className="flex items-start gap-2.5 p-3 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-200/60 mt-2 animate-in fade-in slide-in-from-top-1 duration-200">
+                  <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-[#1366A6] to-[#4DA0E0] shadow-sm flex-shrink-0">
+                    <Users className="h-3.5 w-3.5 text-white" />
+                  </div>
                   <div>
-                    <p className="text-xs text-blue-700 font-medium">
+                    <p className="text-xs text-blue-800 font-semibold">
                       Assigning to everyone
                     </p>
-                    <p className="text-[10px] text-blue-600 mt-0.5">
-                      This will create {users.length} separate task
-                      {users.length !== 1 ? "s" : ""}, one for each team member.
+                    <p className="text-[11px] text-blue-600 mt-0.5 leading-relaxed">
+                      This single task will be visible to and assigned to all{" "}
+                      {users.length} team members.
                     </p>
                   </div>
                 </div>
@@ -447,26 +410,33 @@ export function CreateTaskDialog({
             </div>
           </div>
 
-          <DialogFooter className="pt-2">
+          <DialogFooter className="pt-2 gap-2">
             <Button
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
+              className="transition-all duration-200 hover:shadow-sm"
             >
               Cancel
             </Button>
             <Button
               type="submit"
               disabled={loading}
-              className="bg-[#0F4C8A] hover:bg-[#0D3B73]"
+              className="bg-gradient-to-r from-[#0F4C8A] to-[#1366A6] hover:from-[#0D3B73] hover:to-[#0F4C8A] shadow-md hover:shadow-lg transition-all duration-300"
             >
-              {loading
-                ? isEveryone
-                  ? `Creating ${users.length} tasks…`
-                  : "Creating…"
-                : isEveryone
-                  ? `Create for Everyone`
-                  : "Create"}
+              {loading ? (
+                <span className="flex items-center gap-2">
+                  <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                  Creating…
+                </span>
+              ) : isEveryone ? (
+                <span className="flex items-center gap-1.5">
+                  <Sparkles className="h-3.5 w-3.5" />
+                  Create for Everyone
+                </span>
+              ) : (
+                "Create"
+              )}
             </Button>
           </DialogFooter>
         </form>

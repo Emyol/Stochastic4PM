@@ -41,6 +41,7 @@ import {
   AlertTriangle,
   Clock,
   User,
+  Users,
   CalendarDays,
   FileText,
   MessageSquare,
@@ -56,7 +57,7 @@ interface TaskDetail {
   priority: string;
   startDate: string | null;
   dueDate: string | null;
-  assignee: { id: string; name: string; email: string } | null;
+  assignees: Array<{ id: string; name: string; email: string }>;
   reporter: { id: string; name: string; email: string } | null;
   sprint: { id: string; name: string } | null;
   subtasks: Array<{
@@ -64,7 +65,7 @@ interface TaskDetail {
     title: string;
     status: string;
     priority: string;
-    assignee: { id: string; name: string } | null;
+    assignees: Array<{ id: string; name: string }>;
   }>;
   comments: Array<{
     id: string;
@@ -128,7 +129,7 @@ export function TaskDetailDialog({
   const [editPriority, setEditPriority] = useState("");
   const [editStartDate, setEditStartDate] = useState("");
   const [editDueDate, setEditDueDate] = useState("");
-  const [editAssigneeId, setEditAssigneeId] = useState("");
+  const [editAssigneeMode, setEditAssigneeMode] = useState("none");
   const [saving, setSaving] = useState(false);
 
   // Users list for assignee dropdown
@@ -162,7 +163,6 @@ export function TaskDetailDialog({
       fetchTask();
       setEditing(false);
       setShowAddSubtask(false);
-      // Load users for assignee picker
       fetch("/api/users")
         .then((r) => (r.ok ? r.json() : []))
         .then((data) =>
@@ -190,20 +190,38 @@ export function TaskDetailDialog({
     setEditDueDate(
       task.dueDate ? new Date(task.dueDate).toISOString().slice(0, 10) : "",
     );
-    setEditAssigneeId(task.assignee?.id || "none");
+    // Determine assignee mode from current assignees
+    if (task.assignees.length === 0) {
+      setEditAssigneeMode("none");
+    } else if (task.assignees.length === users.length && users.length > 0) {
+      setEditAssigneeMode("everyone");
+    } else if (task.assignees.length === 1) {
+      setEditAssigneeMode(task.assignees[0].id);
+    } else {
+      // Multiple but not all — default to "everyone" for simplicity
+      setEditAssigneeMode("everyone");
+    }
     setEditing(true);
   };
 
   const saveEdits = async () => {
     if (!task) return;
     setSaving(true);
+
+    let assigneeIds: string[] = [];
+    if (editAssigneeMode === "everyone") {
+      assigneeIds = users.map((u) => u.id);
+    } else if (editAssigneeMode !== "none") {
+      assigneeIds = [editAssigneeMode];
+    }
+
     const body: Record<string, unknown> = {
       title: editTitle,
       description: editDescription,
       priority: editPriority,
       startDate: editStartDate || null,
       dueDate: editDueDate || null,
-      assigneeId: editAssigneeId === "none" ? null : editAssigneeId,
+      assigneeIds,
     };
 
     const res = await fetch(`/api/tasks/${task.id}`, {
@@ -367,7 +385,7 @@ export function TaskDetailDialog({
 
   const canEdit =
     session?.user?.role === "ADMIN" ||
-    session?.user?.id === task?.assignee?.id ||
+    task?.assignees.some((a) => a.id === session?.user?.id) ||
     session?.user?.id === task?.reporter?.id;
 
   const canDelete =
@@ -395,7 +413,10 @@ export function TaskDetailDialog({
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto p-0">
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto p-0 border-0 shadow-2xl">
+          {/* Gradient accent bar */}
+          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#0F4C8A] via-[#1366A6] to-[#4DA0E0] rounded-t-lg z-20" />
+
           {loading ? (
             <div className="flex items-center justify-center py-16">
               <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#1366A6] border-t-transparent" />
@@ -403,13 +424,13 @@ export function TaskDetailDialog({
           ) : task ? (
             <div className="flex flex-col">
               {/* Top bar */}
-              <div className="sticky top-0 z-10 bg-white border-b px-6 py-4">
+              <div className="sticky top-0 z-10 bg-white/95 backdrop-blur-sm border-b px-6 py-4">
                 <div className="flex items-center justify-between gap-3">
                   <div className="flex items-center gap-2 flex-wrap min-w-0">
                     <StatusBadge status={task.status} />
                     <PriorityBadge priority={task.priority} />
                     {task.type === "SPRINT_TASK" && task.sprint && (
-                      <span className="text-xs text-[#0F4C8A] bg-[#CFE8FF] px-2 py-0.5 rounded-full font-medium">
+                      <span className="text-xs text-[#0F4C8A] bg-gradient-to-r from-[#CFE8FF] to-[#E8F4FF] px-2.5 py-0.5 rounded-full font-medium">
                         {task.sprint.name}
                       </span>
                     )}
@@ -419,7 +440,7 @@ export function TaskDetailDialog({
                       </span>
                     )}
                     {isOverdue && (
-                      <span className="text-xs text-red-700 bg-red-100 px-2 py-0.5 rounded-full font-medium flex items-center gap-1">
+                      <span className="text-xs text-red-700 bg-red-100 px-2 py-0.5 rounded-full font-medium flex items-center gap-1 animate-pulse">
                         <AlertTriangle className="h-3 w-3" />
                         Overdue
                       </span>
@@ -477,7 +498,7 @@ export function TaskDetailDialog({
               <div className="px-6 py-5 space-y-6">
                 {/* Edit mode banner */}
                 {editing && (
-                  <div className="flex items-center gap-2 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                  <div className="flex items-center gap-2 p-3 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-200/60">
                     <FileText className="h-4 w-4 text-blue-600" />
                     <span className="text-sm text-blue-700 font-medium flex-1">
                       Editing mode
@@ -495,7 +516,7 @@ export function TaskDetailDialog({
                       size="sm"
                       onClick={saveEdits}
                       disabled={saving || !editTitle.trim()}
-                      className="h-7 bg-[#0F4C8A] hover:bg-[#0D3B73]"
+                      className="h-7 bg-gradient-to-r from-[#0F4C8A] to-[#1366A6] hover:from-[#0D3B73] hover:to-[#0F4C8A]"
                     >
                       <Save className="h-3 w-3 mr-1" />
                       {saving ? "Saving…" : "Save"}
@@ -515,10 +536,10 @@ export function TaskDetailDialog({
                       onChange={(e) => setEditDescription(e.target.value)}
                       rows={4}
                       placeholder="Add a description…"
-                      className="resize-none"
+                      className="resize-none transition-all duration-200 focus:shadow-md focus:shadow-[#1366A6]/10"
                     />
                   ) : (
-                    <div className="text-sm text-gray-700 whitespace-pre-wrap bg-[#F8FAFC] rounded-lg p-3 min-h-[60px]">
+                    <div className="text-sm text-gray-700 whitespace-pre-wrap bg-gradient-to-br from-[#F8FAFC] to-[#F1F5F9] rounded-xl p-4 min-h-[60px] border border-gray-100">
                       {task.description || (
                         <span className="text-muted-foreground italic">
                           No description
@@ -575,14 +596,14 @@ export function TaskDetailDialog({
                     )}
                   </div>
 
-                  <div className="space-y-1.5">
+                  <div className="space-y-1.5 col-span-2 md:col-span-1">
                     <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1">
-                      <User className="h-3 w-3" /> Assignee
+                      <User className="h-3 w-3" /> Assignees
                     </Label>
                     {editing ? (
                       <Select
-                        value={editAssigneeId}
-                        onValueChange={setEditAssigneeId}
+                        value={editAssigneeMode}
+                        onValueChange={setEditAssigneeMode}
                       >
                         <SelectTrigger className="h-9">
                           <SelectValue placeholder="Unassigned" />
@@ -594,6 +615,13 @@ export function TaskDetailDialog({
                               Unassigned
                             </span>
                           </SelectItem>
+                          <SelectItem value="everyone">
+                            <span className="flex items-center gap-2 font-medium text-[#0F4C8A]">
+                              <Users className="h-3.5 w-3.5" />
+                              Everyone ({users.length})
+                            </span>
+                          </SelectItem>
+                          <div className="my-1 h-px bg-border" />
                           {users.map((u) => (
                             <SelectItem key={u.id} value={u.id}>
                               <span className="flex items-center gap-2">
@@ -608,17 +636,36 @@ export function TaskDetailDialog({
                         </SelectContent>
                       </Select>
                     ) : (
-                      <div className="h-9 flex items-center gap-2">
-                        {task.assignee ? (
-                          <>
-                            <AvatarInitials
-                              name={task.assignee.name}
-                              className="h-6 w-6 text-[10px]"
-                            />
-                            <span className="text-sm">
-                              {task.assignee.name}
-                            </span>
-                          </>
+                      <div className="h-9 flex items-center gap-1">
+                        {task.assignees.length > 0 ? (
+                          <div className="flex items-center">
+                            <div className="flex -space-x-2">
+                              {task.assignees.slice(0, 4).map((a) => (
+                                <AvatarInitials
+                                  key={a.id}
+                                  name={a.name}
+                                  className="h-6 w-6 text-[10px] ring-2 ring-white"
+                                />
+                              ))}
+                              {task.assignees.length > 4 && (
+                                <div className="flex h-6 w-6 items-center justify-center rounded-full bg-gray-200 text-[10px] font-medium text-gray-600 ring-2 ring-white">
+                                  +{task.assignees.length - 4}
+                                </div>
+                              )}
+                            </div>
+                            {task.assignees.length <= 2 && (
+                              <span className="text-sm ml-2">
+                                {task.assignees
+                                  .map((a) => a.name.split(" ")[0])
+                                  .join(", ")}
+                              </span>
+                            )}
+                            {task.assignees.length > 2 && (
+                              <span className="text-xs text-muted-foreground ml-2">
+                                {task.assignees.length} assigned
+                              </span>
+                            )}
+                          </div>
                         ) : (
                           <span className="text-sm text-muted-foreground">
                             Unassigned
@@ -688,7 +735,7 @@ export function TaskDetailDialog({
                   </div>
                 </div>
 
-                <Separator />
+                <Separator className="bg-gradient-to-r from-transparent via-border to-transparent" />
 
                 {/* Subtasks */}
                 <div>
@@ -719,7 +766,7 @@ export function TaskDetailDialog({
                     <div className="mb-3">
                       <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
                         <div
-                          className="h-full bg-green-500 rounded-full transition-all duration-300"
+                          className="h-full bg-gradient-to-r from-green-500 to-emerald-400 rounded-full transition-all duration-500"
                           style={{ width: `${subtaskProgress}%` }}
                         />
                       </div>
@@ -752,7 +799,7 @@ export function TaskDetailDialog({
                         size="sm"
                         onClick={addSubtask}
                         disabled={creatingSubtask || !subtaskTitle.trim()}
-                        className="h-8 bg-[#0F4C8A] hover:bg-[#0D3B73]"
+                        className="h-8 bg-gradient-to-r from-[#0F4C8A] to-[#1366A6] hover:from-[#0D3B73] hover:to-[#0F4C8A]"
                       >
                         {creatingSubtask ? "…" : "Add"}
                       </Button>
@@ -767,12 +814,12 @@ export function TaskDetailDialog({
                           onClick={() =>
                             toggleSubtaskStatus(sub.id, sub.status)
                           }
-                          className="flex w-full items-center gap-2 rounded-lg p-2.5 text-sm hover:bg-[#F8FAFC] transition-colors text-left group"
+                          className="flex w-full items-center gap-2 rounded-xl p-2.5 text-sm hover:bg-[#F8FAFC] transition-all duration-200 text-left group"
                         >
                           {sub.status === "DONE" ? (
                             <CheckCircle2 className="h-4 w-4 text-green-600 flex-shrink-0" />
                           ) : (
-                            <Circle className="h-4 w-4 text-muted-foreground flex-shrink-0 group-hover:text-[#1366A6]" />
+                            <Circle className="h-4 w-4 text-muted-foreground flex-shrink-0 group-hover:text-[#1366A6] transition-colors" />
                           )}
                           <span
                             className={`flex-1 ${
@@ -783,11 +830,16 @@ export function TaskDetailDialog({
                           >
                             {sub.title}
                           </span>
-                          {sub.assignee && (
-                            <AvatarInitials
-                              name={sub.assignee.name}
-                              className="h-5 w-5 text-[10px] opacity-60"
-                            />
+                          {sub.assignees.length > 0 && (
+                            <div className="flex -space-x-1">
+                              {sub.assignees.slice(0, 2).map((a) => (
+                                <AvatarInitials
+                                  key={a.id}
+                                  name={a.name}
+                                  className="h-5 w-5 text-[10px] opacity-60 ring-1 ring-white"
+                                />
+                              ))}
+                            </div>
                           )}
                         </button>
                       ))}
@@ -801,7 +853,7 @@ export function TaskDetailDialog({
                   )}
                 </div>
 
-                <Separator />
+                <Separator className="bg-gradient-to-r from-transparent via-border to-transparent" />
 
                 {/* Attachments */}
                 <div>
@@ -825,7 +877,7 @@ export function TaskDetailDialog({
                           e.target.value = "";
                         }}
                       />
-                      <div className="flex items-center gap-1 text-xs text-[#1366A6] hover:text-[#0D3B73] font-medium px-2 py-1 rounded hover:bg-[#CFE8FF]/50 transition-colors">
+                      <div className="flex items-center gap-1 text-xs text-[#1366A6] hover:text-[#0D3B73] font-medium px-2 py-1 rounded-lg hover:bg-[#CFE8FF]/50 transition-all duration-200">
                         <Plus className="h-3 w-3" />
                         Upload
                       </div>
@@ -836,7 +888,7 @@ export function TaskDetailDialog({
                       {task.attachments.map((att) => (
                         <div
                           key={att.id}
-                          className="flex items-center gap-2 text-sm p-2.5 bg-[#F8FAFC] rounded-lg border border-gray-100 hover:border-gray-200 transition-colors"
+                          className="flex items-center gap-2 text-sm p-2.5 bg-gradient-to-r from-[#F8FAFC] to-white rounded-xl border border-gray-100 hover:border-[#1366A6]/20 hover:shadow-sm transition-all duration-200"
                         >
                           <Paperclip className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                           <span className="flex-1 truncate text-gray-700">
@@ -847,7 +899,7 @@ export function TaskDetailDialog({
                           </span>
                           <a
                             href={`/api/attachments/${att.id}`}
-                            className="p-1 rounded hover:bg-[#CFE8FF] text-[#1366A6] transition-colors"
+                            className="p-1 rounded-lg hover:bg-[#CFE8FF] text-[#1366A6] transition-all duration-200"
                             title="Download"
                           >
                             <Download className="h-4 w-4" />
@@ -856,7 +908,7 @@ export function TaskDetailDialog({
                             session?.user?.id === att.uploadedBy.id) && (
                             <button
                               onClick={() => deleteAttachment(att.id)}
-                              className="p-1 rounded hover:bg-red-50 text-red-400 hover:text-red-600 transition-colors"
+                              className="p-1 rounded-lg hover:bg-red-50 text-red-400 hover:text-red-600 transition-all duration-200"
                               title="Delete"
                             >
                               <Trash2 className="h-4 w-4" />
@@ -872,7 +924,7 @@ export function TaskDetailDialog({
                   )}
                 </div>
 
-                <Separator />
+                <Separator className="bg-gradient-to-r from-transparent via-border to-transparent" />
 
                 {/* Comments */}
                 <div>
@@ -904,13 +956,13 @@ export function TaskDetailDialog({
                             addComment();
                           }
                         }}
-                        className="h-9"
+                        className="h-9 transition-all duration-200 focus:shadow-md focus:shadow-[#1366A6]/10"
                       />
                       <Button
                         size="sm"
                         onClick={addComment}
                         disabled={submittingComment || !commentBody.trim()}
-                        className="h-9 px-3 bg-[#0F4C8A] hover:bg-[#0D3B73]"
+                        className="h-9 px-3 bg-gradient-to-r from-[#0F4C8A] to-[#1366A6] hover:from-[#0D3B73] hover:to-[#0F4C8A]"
                       >
                         <Send className="h-4 w-4" />
                       </Button>
@@ -922,7 +974,7 @@ export function TaskDetailDialog({
                       {task.comments.map((c) => (
                         <div
                           key={c.id}
-                          className="bg-[#F8FAFC] rounded-lg p-3 group"
+                          className="bg-gradient-to-br from-[#F8FAFC] to-[#F1F5F9] rounded-xl p-3 group border border-gray-50 hover:border-gray-100 transition-all duration-200"
                         >
                           <div className="flex items-center gap-2 mb-1.5">
                             <AvatarInitials
@@ -944,7 +996,7 @@ export function TaskDetailDialog({
                               session?.user?.id === c.author.id) && (
                               <button
                                 onClick={() => deleteComment(c.id)}
-                                className="ml-auto opacity-0 group-hover:opacity-100 p-1 rounded text-red-400 hover:text-red-600 hover:bg-red-50 transition-all"
+                                className="ml-auto opacity-0 group-hover:opacity-100 p-1 rounded-lg text-red-400 hover:text-red-600 hover:bg-red-50 transition-all duration-200"
                                 title="Delete comment"
                               >
                                 <Trash2 className="h-3 w-3" />

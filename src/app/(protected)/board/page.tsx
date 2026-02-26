@@ -37,7 +37,7 @@ interface BoardTask {
   status: string;
   priority: string;
   dueDate: string | null;
-  assignee: { id: string; name: string; email: string } | null;
+  assignees: Array<{ id: string; name: string; email: string }>;
   _count: { subtasks: number; comments: number; attachments: number };
 }
 
@@ -167,7 +167,7 @@ export default function BoardPage() {
           </Select>
           <Button
             onClick={() => setCreateOpen(true)}
-            className="bg-[#0F4C8A] hover:bg-[#0D3B73]"
+            className="bg-gradient-to-r from-[#0F4C8A] to-[#1366A6] hover:from-[#0D3B73] hover:to-[#0F4C8A] shadow-md shadow-[#0F4C8A]/20 hover:shadow-lg hover:shadow-[#0F4C8A]/30 transition-all duration-300"
           >
             <Plus className="h-4 w-4 mr-1" />
             Task
@@ -324,11 +324,21 @@ export default function BoardPage() {
                             )}
                           </div>
                           <div className="flex items-center gap-2">
-                            {task.assignee && (
-                              <AvatarInitials
-                                name={task.assignee.name}
-                                className="h-6 w-6 text-[10px]"
-                              />
+                            {task.assignees.length > 0 && (
+                              <div className="flex -space-x-1.5">
+                                {task.assignees.slice(0, 3).map((a) => (
+                                  <AvatarInitials
+                                    key={a.id}
+                                    name={a.name}
+                                    className="h-6 w-6 text-[10px] ring-1.5 ring-white"
+                                  />
+                                ))}
+                                {task.assignees.length > 3 && (
+                                  <div className="flex h-6 w-6 items-center justify-center rounded-full bg-gray-200 text-[9px] font-medium text-gray-600 ring-1.5 ring-white">
+                                    +{task.assignees.length - 3}
+                                  </div>
+                                )}
+                              </div>
                             )}
                           </div>
                         </div>

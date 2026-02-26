@@ -20,7 +20,7 @@ export async function GET(
       tasks: {
         where: { parentId: null },
         include: {
-          assignee: { select: { id: true, name: true, email: true } },
+          assignees: { select: { id: true, name: true, email: true } },
           _count: { select: { subtasks: true } },
         },
         orderBy: { createdAt: "asc" },

@@ -15,10 +15,12 @@ export default async function ProtectedLayout({
   }
 
   return (
-    <div className="min-h-screen bg-[#F1F5F9]">
+    <div className="min-h-screen bg-gradient-to-br from-[#F1F5F9] via-[#F8FAFC] to-[#EEF2F7]">
       <Sidebar />
       <div className="md:pl-64">
-        <main className="p-4 md:p-6 pb-20 md:pb-6">{children}</main>
+        <main className="p-4 md:p-6 pb-20 md:pb-6 animate-fade-in">
+          {children}
+        </main>
       </div>
       <MobileNav />
     </div>

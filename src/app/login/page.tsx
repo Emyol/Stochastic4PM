@@ -40,23 +40,13 @@ export default function LoginPage() {
     <div className="flex min-h-screen items-center justify-center bg-[#0A2342] px-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-[#0F4C8A]">
-            <svg
-              className="h-6 w-6 text-white"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-              />
-            </svg>
-          </div>
+          <img
+            src="/logo.png"
+            alt="Stochastic4"
+            className="mx-auto mb-4 h-16 w-16 object-contain"
+          />
           <CardTitle className="text-2xl font-bold text-[#0A2342]">
-            Thesis PM Portal
+            Stochastic4
           </CardTitle>
           <p className="text-sm text-muted-foreground">
             Sign in to your account

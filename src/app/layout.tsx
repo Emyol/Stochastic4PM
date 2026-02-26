@@ -15,8 +15,11 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Thesis PM Portal",
-  description: "Jira-like project management for thesis teams",
+  title: "Stochastic4",
+  description: "Project management for Stochastic4 team",
+  icons: {
+    icon: "/logo.png",
+  },
 };
 
 export default function RootLayout({

@@ -41,22 +41,12 @@ export function Sidebar() {
       {/* Logo */}
       <div className="flex h-16 items-center px-6 border-b border-[#0D3B73]">
         <div className="flex items-center gap-3">
-          <div className="flex h-8 w-8 items-center justify-center rounded-md bg-[#0F4C8A]">
-            <svg
-              className="h-4 w-4 text-white"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-              />
-            </svg>
-          </div>
-          <span className="font-semibold text-lg">Thesis PM</span>
+          <img
+            src="/logo.png"
+            alt="Stochastic4"
+            className="h-8 w-8 rounded-md object-contain"
+          />
+          <span className="font-semibold text-lg">Stochastic4</span>
         </div>
       </div>
 

@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -14,8 +14,9 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
+import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { toast } from "sonner";
-import { Plus, Pencil, Trash2 } from "lucide-react";
+import { Plus, Pencil, Trash2, Zap, Calendar } from "lucide-react";
 
 interface Sprint {
   id: string;
@@ -35,6 +36,12 @@ export default function SprintsPage() {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [loading, setLoading] = useState(false);
+  const [pageLoading, setPageLoading] = useState(true);
+
+  // Delete confirmation
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
+  const [deletingSprint, setDeletingSprint] = useState<Sprint | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   useEffect(() => {
     if (session?.user?.role !== "ADMIN") {
@@ -45,8 +52,10 @@ export default function SprintsPage() {
   }, [session, router]);
 
   const loadSprints = async () => {
+    setPageLoading(true);
     const res = await fetch("/api/sprints");
     if (res.ok) setSprints(await res.json());
+    setPageLoading(false);
   };
 
   const openCreate = () => {
@@ -104,11 +113,22 @@ export default function SprintsPage() {
     setLoading(false);
   };
 
-  const deleteSprint = async (sprint: Sprint) => {
-    if (!confirm(`Delete sprint "${sprint.name}"?`)) return;
-    const res = await fetch(`/api/sprints/${sprint.id}`, { method: "DELETE" });
+  const confirmDelete = (sprint: Sprint) => {
+    setDeletingSprint(sprint);
+    setConfirmDeleteOpen(true);
+  };
+
+  const deleteSprint = async () => {
+    if (!deletingSprint) return;
+    setDeleteLoading(true);
+    const res = await fetch(`/api/sprints/${deletingSprint.id}`, {
+      method: "DELETE",
+    });
+    setDeleteLoading(false);
     if (res.ok) {
       toast.success("Sprint deleted");
+      setConfirmDeleteOpen(false);
+      setDeletingSprint(null);
       loadSprints();
     } else {
       const err = await res.json();
@@ -121,7 +141,10 @@ export default function SprintsPage() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-[#0A2342]">Sprints</h1>
+        <div className="flex items-center gap-2">
+          <Zap className="h-6 w-6 text-[#0F4C8A]" />
+          <h1 className="text-2xl font-bold text-[#0A2342]">Sprints</h1>
+        </div>
         <Button
           onClick={openCreate}
           className="bg-[#0F4C8A] hover:bg-[#0D3B73]"
@@ -131,56 +154,132 @@ export default function SprintsPage() {
         </Button>
       </div>
 
-      {sprints.length === 0 ? (
-        <div className="text-center py-16 text-muted-foreground">
-          No sprints yet. Create your first sprint!
+      {pageLoading ? (
+        <div className="grid gap-4">
+          {[1, 2, 3].map((i) => (
+            <Card key={i}>
+              <CardContent className="p-4 animate-pulse">
+                <div className="flex items-center gap-4">
+                  <div className="flex-1 space-y-2">
+                    <div className="h-5 w-36 bg-gray-200 rounded" />
+                    <div className="h-4 w-48 bg-gray-100 rounded" />
+                    <div className="h-3 w-20 bg-gray-100 rounded" />
+                  </div>
+                  <div className="flex gap-2">
+                    <div className="h-9 w-9 bg-gray-100 rounded" />
+                    <div className="h-9 w-9 bg-gray-100 rounded" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      ) : sprints.length === 0 ? (
+        <div className="text-center py-16">
+          <Zap className="h-12 w-12 text-muted-foreground/30 mx-auto mb-3" />
+          <p className="text-muted-foreground mb-4">No sprints yet</p>
+          <Button
+            onClick={openCreate}
+            className="bg-[#0F4C8A] hover:bg-[#0D3B73]"
+          >
+            <Plus className="h-4 w-4 mr-1" />
+            Create your first sprint
+          </Button>
         </div>
       ) : (
-        <div className="grid gap-4">
+        <div className="grid gap-3">
           {sprints.map((sprint) => {
             const now = new Date();
-            const isActive =
-              new Date(sprint.startDate) <= now &&
-              new Date(sprint.endDate) >= now;
+            const start = new Date(sprint.startDate);
+            const end = new Date(sprint.endDate);
+            const isActive = start <= now && end >= now;
+            const isPast = end < now;
+            const totalDays = Math.max(
+              1,
+              (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24),
+            );
+            const elapsed = Math.max(
+              0,
+              (now.getTime() - start.getTime()) / (1000 * 60 * 60 * 24),
+            );
+            const timeProgress = isActive
+              ? Math.min(100, Math.round((elapsed / totalDays) * 100))
+              : isPast
+                ? 100
+                : 0;
+
             return (
               <Card
                 key={sprint.id}
-                className={isActive ? "border-[#1366A6] border-2" : ""}
+                className={`transition-all ${isActive ? "border-[#1366A6] border-2 shadow-sm" : isPast ? "opacity-70" : ""}`}
               >
-                <CardContent className="p-4 flex items-center gap-4">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-semibold">{sprint.name}</h3>
+                <CardContent className="p-4">
+                  <div className="flex items-start gap-4">
+                    <div className="flex-1 space-y-2">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h3 className="font-semibold text-[#0A2342]">
+                          {sprint.name}
+                        </h3>
+                        {isActive && (
+                          <span className="text-[10px] bg-[#CFE8FF] text-[#0A2342] px-2 py-0.5 rounded-full font-semibold uppercase tracking-wider">
+                            Active
+                          </span>
+                        )}
+                        {isPast && (
+                          <span className="text-[10px] bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full font-semibold uppercase tracking-wider">
+                            Ended
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Calendar className="h-3.5 w-3.5" />
+                        {start.toLocaleDateString("en-US", {
+                          month: "short",
+                          day: "numeric",
+                        })}{" "}
+                        –{" "}
+                        {end.toLocaleDateString("en-US", {
+                          month: "short",
+                          day: "numeric",
+                          year: "numeric",
+                        })}
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        {sprint._count.tasks} task
+                        {sprint._count.tasks !== 1 ? "s" : ""}
+                      </p>
                       {isActive && (
-                        <span className="text-xs bg-[#CFE8FF] text-[#0A2342] px-2 py-0.5 rounded-full">
-                          Active
-                        </span>
+                        <div>
+                          <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden mt-1">
+                            <div
+                              className="h-full bg-[#1366A6] rounded-full transition-all"
+                              style={{ width: `${timeProgress}%` }}
+                            />
+                          </div>
+                          <p className="text-[10px] text-muted-foreground mt-0.5">
+                            {Math.round(totalDays - elapsed)} days remaining
+                          </p>
+                        </div>
                       )}
                     </div>
-                    <p className="text-sm text-muted-foreground">
-                      {new Date(sprint.startDate).toLocaleDateString()} –{" "}
-                      {new Date(sprint.endDate).toLocaleDateString()}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      {sprint._count.tasks} tasks
-                    </p>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button
-                      size="icon"
-                      variant="outline"
-                      onClick={() => openEdit(sprint)}
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      size="icon"
-                      variant="outline"
-                      className="text-red-600 hover:text-red-700"
-                      onClick={() => deleteSprint(sprint)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                    <div className="flex gap-1.5 flex-shrink-0">
+                      <Button
+                        size="icon"
+                        variant="outline"
+                        onClick={() => openEdit(sprint)}
+                        className="h-8 w-8"
+                      >
+                        <Pencil className="h-3.5 w-3.5" />
+                      </Button>
+                      <Button
+                        size="icon"
+                        variant="outline"
+                        className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50"
+                        onClick={() => confirmDelete(sprint)}
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -202,6 +301,7 @@ export default function SprintsPage() {
               <Input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
+                placeholder="Sprint 1"
                 required
               />
             </div>
@@ -244,6 +344,17 @@ export default function SprintsPage() {
           </form>
         </DialogContent>
       </Dialog>
+
+      <ConfirmDialog
+        open={confirmDeleteOpen}
+        onOpenChange={setConfirmDeleteOpen}
+        title="Delete sprint"
+        description={`Are you sure you want to delete "${deletingSprint?.name}"? ${deletingSprint?._count?.tasks ? `This sprint has ${deletingSprint._count.tasks} task(s) that will be unlinked.` : ""} This action cannot be undone.`}
+        confirmLabel="Delete"
+        variant="destructive"
+        loading={deleteLoading}
+        onConfirm={deleteSprint}
+      />
     </div>
   );
 }

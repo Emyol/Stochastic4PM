@@ -22,8 +22,17 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
+import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { toast } from "sonner";
-import { Plus, Pencil, Trash2, Key } from "lucide-react";
+import {
+  Plus,
+  Pencil,
+  Trash2,
+  Key,
+  Users,
+  Shield,
+  UserCircle,
+} from "lucide-react";
 import { AvatarInitials } from "@/components/shared/badges";
 
 interface User {
@@ -47,6 +56,12 @@ export default function UsersPage() {
   const [role, setRole] = useState("MEMBER");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [pageLoading, setPageLoading] = useState(true);
+
+  // Delete confirmation
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
+  const [deletingUser, setDeletingUser] = useState<User | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   useEffect(() => {
     if (session?.user?.role !== "ADMIN") {
@@ -57,8 +72,10 @@ export default function UsersPage() {
   }, [session, router]);
 
   const loadUsers = async () => {
+    setPageLoading(true);
     const res = await fetch("/api/users");
     if (res.ok) setUsers(await res.json());
+    setPageLoading(false);
   };
 
   const openCreate = () => {
@@ -133,7 +150,7 @@ export default function UsersPage() {
     });
     setLoading(false);
     if (res.ok) {
-      toast.success("Password reset");
+      toast.success("Password reset successfully");
       setDialogMode(null);
     } else {
       const err = await res.json();
@@ -141,11 +158,22 @@ export default function UsersPage() {
     }
   };
 
-  const deleteUser = async (user: User) => {
-    if (!confirm(`Delete user "${user.name}"?`)) return;
-    const res = await fetch(`/api/users/${user.id}`, { method: "DELETE" });
+  const confirmDeleteUser = (user: User) => {
+    setDeletingUser(user);
+    setConfirmDeleteOpen(true);
+  };
+
+  const deleteUser = async () => {
+    if (!deletingUser) return;
+    setDeleteLoading(true);
+    const res = await fetch(`/api/users/${deletingUser.id}`, {
+      method: "DELETE",
+    });
+    setDeleteLoading(false);
     if (res.ok) {
       toast.success("User deleted");
+      setConfirmDeleteOpen(false);
+      setDeletingUser(null);
       loadUsers();
     } else {
       const err = await res.json();
@@ -158,7 +186,15 @@ export default function UsersPage() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-[#0A2342]">Users</h1>
+        <div className="flex items-center gap-2">
+          <Users className="h-6 w-6 text-[#0F4C8A]" />
+          <h1 className="text-2xl font-bold text-[#0A2342]">Users</h1>
+          {!pageLoading && (
+            <span className="text-sm text-muted-foreground">
+              ({users.length})
+            </span>
+          )}
+        </div>
         <Button
           onClick={openCreate}
           className="bg-[#0F4C8A] hover:bg-[#0D3B73]"
@@ -168,56 +204,108 @@ export default function UsersPage() {
         </Button>
       </div>
 
-      <div className="grid gap-3">
-        {users.map((user) => (
-          <Card key={user.id}>
-            <CardContent className="p-4 flex items-center gap-4">
-              <AvatarInitials name={user.name} className="h-10 w-10 text-sm" />
-              <div className="flex-1">
-                <div className="flex items-center gap-2">
-                  <h3 className="font-semibold">{user.name}</h3>
-                  <Badge
-                    variant={user.role === "ADMIN" ? "default" : "secondary"}
-                    className="text-xs"
-                  >
-                    {user.role}
-                  </Badge>
+      {pageLoading ? (
+        <div className="grid gap-3">
+          {[1, 2, 3].map((i) => (
+            <Card key={i}>
+              <CardContent className="p-4 animate-pulse">
+                <div className="flex items-center gap-4">
+                  <div className="h-10 w-10 rounded-full bg-gray-200" />
+                  <div className="flex-1 space-y-2">
+                    <div className="h-4 w-32 bg-gray-200 rounded" />
+                    <div className="h-3 w-48 bg-gray-100 rounded" />
+                  </div>
+                  <div className="flex gap-2">
+                    <div className="h-8 w-8 bg-gray-100 rounded" />
+                    <div className="h-8 w-8 bg-gray-100 rounded" />
+                  </div>
                 </div>
-                <p className="text-sm text-muted-foreground">{user.email}</p>
-              </div>
-              <div className="flex gap-2">
-                <Button
-                  size="icon"
-                  variant="outline"
-                  onClick={() => openEdit(user)}
-                  title="Edit"
-                >
-                  <Pencil className="h-4 w-4" />
-                </Button>
-                <Button
-                  size="icon"
-                  variant="outline"
-                  onClick={() => openResetPassword(user)}
-                  title="Reset password"
-                >
-                  <Key className="h-4 w-4" />
-                </Button>
-                {user.id !== session?.user?.id && (
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      ) : (
+        <div className="grid gap-3">
+          {users.map((user) => (
+            <Card key={user.id} className="hover:shadow-sm transition-shadow">
+              <CardContent className="p-4 flex items-center gap-4">
+                <AvatarInitials
+                  name={user.name}
+                  className="h-10 w-10 text-sm"
+                />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h3 className="font-semibold text-[#0A2342]">
+                      {user.name}
+                    </h3>
+                    <Badge
+                      variant={user.role === "ADMIN" ? "default" : "secondary"}
+                      className={`text-[10px] ${user.role === "ADMIN" ? "bg-[#0F4C8A]" : ""}`}
+                    >
+                      {user.role === "ADMIN" ? (
+                        <span className="flex items-center gap-1">
+                          <Shield className="h-2.5 w-2.5" /> Admin
+                        </span>
+                      ) : (
+                        <span className="flex items-center gap-1">
+                          <UserCircle className="h-2.5 w-2.5" /> Member
+                        </span>
+                      )}
+                    </Badge>
+                    {user.id === session?.user?.id && (
+                      <span className="text-[10px] text-[#0F4C8A] bg-[#CFE8FF] px-1.5 py-0.5 rounded-full font-medium">
+                        You
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-sm text-muted-foreground truncate">
+                    {user.email}
+                  </p>
+                  <p className="text-[10px] text-muted-foreground mt-0.5">
+                    Joined{" "}
+                    {new Date(user.createdAt).toLocaleDateString("en-US", {
+                      month: "short",
+                      day: "numeric",
+                      year: "numeric",
+                    })}
+                  </p>
+                </div>
+                <div className="flex gap-1.5 flex-shrink-0">
                   <Button
                     size="icon"
                     variant="outline"
-                    className="text-red-600"
-                    onClick={() => deleteUser(user)}
-                    title="Delete"
+                    onClick={() => openEdit(user)}
+                    title="Edit"
+                    className="h-8 w-8"
                   >
-                    <Trash2 className="h-4 w-4" />
+                    <Pencil className="h-3.5 w-3.5" />
                   </Button>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+                  <Button
+                    size="icon"
+                    variant="outline"
+                    onClick={() => openResetPassword(user)}
+                    title="Reset password"
+                    className="h-8 w-8"
+                  >
+                    <Key className="h-3.5 w-3.5" />
+                  </Button>
+                  {user.id !== session?.user?.id && (
+                    <Button
+                      size="icon"
+                      variant="outline"
+                      className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50"
+                      onClick={() => confirmDeleteUser(user)}
+                      title="Delete"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
 
       {/* Create Dialog */}
       <Dialog
@@ -234,6 +322,7 @@ export default function UsersPage() {
               <Input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
+                placeholder="John Doe"
                 required
               />
             </div>
@@ -243,6 +332,7 @@ export default function UsersPage() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                placeholder="john@example.com"
                 required
               />
             </div>
@@ -264,6 +354,7 @@ export default function UsersPage() {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                placeholder="Min. 8 characters"
                 required
                 minLength={8}
               />
@@ -354,6 +445,7 @@ export default function UsersPage() {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                placeholder="Min. 8 characters"
                 required
                 minLength={8}
               />
@@ -377,6 +469,17 @@ export default function UsersPage() {
           </form>
         </DialogContent>
       </Dialog>
+
+      <ConfirmDialog
+        open={confirmDeleteOpen}
+        onOpenChange={setConfirmDeleteOpen}
+        title="Delete user"
+        description={`Are you sure you want to delete "${deletingUser?.name}"? All tasks assigned to this user will be unassigned. This action cannot be undone.`}
+        confirmLabel="Delete"
+        variant="destructive"
+        loading={deleteLoading}
+        onConfirm={deleteUser}
+      />
     </div>
   );
 }

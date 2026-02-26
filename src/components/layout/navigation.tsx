@@ -137,9 +137,10 @@ export function MobileNav() {
   const pathname = usePathname();
 
   const mobileItems = [
+    { href: "/dashboard", label: "Home", icon: LayoutDashboard },
     { href: "/board", label: "Board", icon: Columns3 },
     { href: "/calendar", label: "Calendar", icon: Calendar },
-    { href: "/general", label: "General", icon: ListTodo },
+    { href: "/general", label: "Tasks", icon: ListTodo },
     { href: "/account", label: "Account", icon: User },
   ];
 

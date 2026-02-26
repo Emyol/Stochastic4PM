@@ -18,7 +18,16 @@ import {
 } from "@/components/shared/badges";
 import { TaskDetailDialog } from "@/components/tasks/task-detail-dialog";
 import { CreateTaskDialog } from "@/components/tasks/create-task-dialog";
-import { Plus, Search } from "lucide-react";
+import {
+  Plus,
+  Search,
+  ListTodo,
+  AlertTriangle,
+  Clock,
+  MessageSquare,
+  Paperclip,
+  ListChecks,
+} from "lucide-react";
 
 interface GeneralTask {
   id: string;
@@ -47,8 +56,10 @@ export default function GeneralPage() {
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const loadTasks = useCallback(async () => {
+    setLoading(true);
     const params = new URLSearchParams({
       type: "GENERAL_TASK",
       parentId: "null",
@@ -59,16 +70,38 @@ export default function GeneralPage() {
     if (res.ok) {
       setTasks(await res.json());
     }
+    setLoading(false);
   }, [search, statusFilter]);
 
   useEffect(() => {
     loadTasks();
   }, [loadTasks]);
 
+  const isOverdue = (dueDate: string | null, status: string) => {
+    if (!dueDate || status === "DONE") return false;
+    return new Date(dueDate) < new Date();
+  };
+
+  const isDueSoon = (dueDate: string | null, status: string) => {
+    if (!dueDate || status === "DONE") return false;
+    const due = new Date(dueDate);
+    const now = new Date();
+    const diff = due.getTime() - now.getTime();
+    return diff > 0 && diff < 3 * 24 * 60 * 60 * 1000;
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-        <h1 className="text-2xl font-bold text-[#0A2342]">General Tasks</h1>
+        <div className="flex items-center gap-2">
+          <ListTodo className="h-6 w-6 text-[#0F4C8A]" />
+          <h1 className="text-2xl font-bold text-[#0A2342]">General Tasks</h1>
+          {!loading && (
+            <span className="text-sm text-muted-foreground">
+              ({tasks.length})
+            </span>
+          )}
+        </div>
         <div className="flex-1" />
         <div className="flex items-center gap-2 flex-wrap">
           <div className="relative">
@@ -102,79 +135,224 @@ export default function GeneralPage() {
         </div>
       </div>
 
-      {/* Tasks list */}
-      {tasks.length === 0 ? (
-        <div className="text-center py-16 text-muted-foreground">
-          No general tasks found
-        </div>
-      ) : (
+      {/* Loading skeleton */}
+      {loading ? (
         <div className="space-y-2">
-          {/* Desktop table header */}
-          <div className="hidden md:grid md:grid-cols-[1fr_120px_100px_140px_100px] gap-4 px-4 py-2 text-xs font-medium text-muted-foreground uppercase">
-            <span>Title</span>
-            <span>Status</span>
-            <span>Priority</span>
-            <span>Due Date</span>
-            <span>Assignee</span>
+          <div className="hidden md:grid md:grid-cols-[1fr_120px_100px_140px_100px] gap-4 px-4 py-2">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <div key={i} className="h-3 bg-gray-100 rounded animate-pulse" />
+            ))}
           </div>
-          {tasks.map((task) => (
-            <Card
-              key={task.id}
-              className="cursor-pointer hover:shadow-md transition-shadow"
-              onClick={() => {
-                setSelectedTaskId(task.id);
-                setDetailOpen(true);
-              }}
-            >
-              <CardContent className="p-4">
-                {/* Desktop row */}
+          {[1, 2, 3, 4, 5].map((i) => (
+            <Card key={i}>
+              <CardContent className="p-4 animate-pulse">
                 <div className="hidden md:grid md:grid-cols-[1fr_120px_100px_140px_100px] gap-4 items-center">
-                  <span className="text-sm font-medium truncate">
-                    {task.title}
-                  </span>
-                  <StatusBadge status={task.status} />
-                  <PriorityBadge priority={task.priority} />
-                  <span className="text-sm text-muted-foreground">
-                    {task.dueDate
-                      ? new Date(task.dueDate).toLocaleDateString()
-                      : "—"}
-                  </span>
-                  <div>
-                    {task.assignee ? (
-                      <AvatarInitials
-                        name={task.assignee.name}
-                        className="h-6 w-6 text-[10px]"
-                      />
-                    ) : (
-                      <span className="text-xs text-muted-foreground">—</span>
-                    )}
-                  </div>
+                  <div className="h-4 bg-gray-200 rounded w-3/4" />
+                  <div className="h-5 bg-gray-100 rounded w-20" />
+                  <div className="h-5 bg-gray-100 rounded w-16" />
+                  <div className="h-4 bg-gray-100 rounded w-24" />
+                  <div className="h-6 w-6 bg-gray-200 rounded-full" />
                 </div>
-                {/* Mobile card */}
                 <div className="md:hidden space-y-2">
-                  <p className="text-sm font-medium">{task.title}</p>
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <StatusBadge status={task.status} />
-                    <PriorityBadge priority={task.priority} />
-                    {task.dueDate && (
-                      <span className="text-xs text-muted-foreground">
-                        Due: {new Date(task.dueDate).toLocaleDateString()}
-                      </span>
-                    )}
+                  <div className="h-4 bg-gray-200 rounded w-3/4" />
+                  <div className="flex gap-2">
+                    <div className="h-5 bg-gray-100 rounded w-16" />
+                    <div className="h-5 bg-gray-100 rounded w-14" />
                   </div>
-                  {task.assignee && (
-                    <div className="flex items-center gap-2 text-xs">
-                      <AvatarInitials
-                        name={task.assignee.name}
-                        className="h-5 w-5 text-[10px]"
-                      />
-                      <span>{task.assignee.name}</span>
-                    </div>
-                  )}
                 </div>
               </CardContent>
             </Card>
           ))}
+        </div>
+      ) : tasks.length === 0 ? (
+        <div className="text-center py-16">
+          <ListTodo className="h-12 w-12 text-muted-foreground/30 mx-auto mb-3" />
+          <p className="text-muted-foreground mb-1">No general tasks found</p>
+          {(search || statusFilter !== "all") && (
+            <p className="text-sm text-muted-foreground mb-4">
+              Try adjusting your filters
+            </p>
+          )}
+          <Button
+            onClick={() => setCreateOpen(true)}
+            className="bg-[#0F4C8A] hover:bg-[#0D3B73]"
+          >
+            <Plus className="h-4 w-4 mr-1" />
+            Create a task
+          </Button>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {/* Desktop table header */}
+          <div className="hidden md:grid md:grid-cols-[1fr_120px_100px_140px_60px_100px] gap-4 px-4 py-2 text-xs font-medium text-muted-foreground uppercase tracking-wider">
+            <span>Title</span>
+            <span>Status</span>
+            <span>Priority</span>
+            <span>Due Date</span>
+            <span>Info</span>
+            <span>Assignee</span>
+          </div>
+          {tasks.map((task) => {
+            const taskOverdue = isOverdue(task.dueDate, task.status);
+            const taskDueSoon = isDueSoon(task.dueDate, task.status);
+
+            return (
+              <Card
+                key={task.id}
+                className={`cursor-pointer hover:shadow-md transition-all ${
+                  taskOverdue
+                    ? "border-red-200 hover:border-red-300"
+                    : "hover:border-[#1366A6]/20"
+                }`}
+                onClick={() => {
+                  setSelectedTaskId(task.id);
+                  setDetailOpen(true);
+                }}
+              >
+                <CardContent className="p-4">
+                  {/* Desktop row */}
+                  <div className="hidden md:grid md:grid-cols-[1fr_120px_100px_140px_60px_100px] gap-4 items-center">
+                    <span className="text-sm font-medium truncate text-[#0A2342]">
+                      {task.title}
+                    </span>
+                    <StatusBadge status={task.status} />
+                    <PriorityBadge priority={task.priority} />
+                    <div className="flex items-center gap-1">
+                      {taskOverdue && (
+                        <AlertTriangle className="h-3.5 w-3.5 text-red-500 flex-shrink-0" />
+                      )}
+                      {taskDueSoon && !taskOverdue && (
+                        <Clock className="h-3.5 w-3.5 text-amber-500 flex-shrink-0" />
+                      )}
+                      <span
+                        className={`text-sm ${
+                          taskOverdue
+                            ? "text-red-600 font-medium"
+                            : taskDueSoon
+                              ? "text-amber-600 font-medium"
+                              : "text-muted-foreground"
+                        }`}
+                      >
+                        {task.dueDate
+                          ? new Date(task.dueDate).toLocaleDateString("en-US", {
+                              month: "short",
+                              day: "numeric",
+                            })
+                          : "—"}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1.5 text-muted-foreground">
+                      {task._count.subtasks > 0 && (
+                        <span
+                          className="flex items-center gap-0.5 text-[10px]"
+                          title="Subtasks"
+                        >
+                          <ListChecks className="h-3 w-3" />
+                          {task._count.subtasks}
+                        </span>
+                      )}
+                      {task._count.comments > 0 && (
+                        <span
+                          className="flex items-center gap-0.5 text-[10px]"
+                          title="Comments"
+                        >
+                          <MessageSquare className="h-3 w-3" />
+                          {task._count.comments}
+                        </span>
+                      )}
+                      {task._count.attachments > 0 && (
+                        <span
+                          className="flex items-center gap-0.5 text-[10px]"
+                          title="Attachments"
+                        >
+                          <Paperclip className="h-3 w-3" />
+                          {task._count.attachments}
+                        </span>
+                      )}
+                    </div>
+                    <div>
+                      {task.assignee ? (
+                        <div className="flex items-center gap-1.5">
+                          <AvatarInitials
+                            name={task.assignee.name}
+                            className="h-6 w-6 text-[10px]"
+                          />
+                          <span className="text-xs text-muted-foreground truncate max-w-[60px]">
+                            {task.assignee.name.split(" ")[0]}
+                          </span>
+                        </div>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">—</span>
+                      )}
+                    </div>
+                  </div>
+                  {/* Mobile card */}
+                  <div className="md:hidden space-y-2">
+                    <p className="text-sm font-medium text-[#0A2342]">
+                      {task.title}
+                    </p>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <StatusBadge status={task.status} />
+                      <PriorityBadge priority={task.priority} />
+                      {taskOverdue && (
+                        <span className="text-[10px] text-red-600 bg-red-50 px-1.5 py-0.5 rounded font-medium flex items-center gap-0.5">
+                          <AlertTriangle className="h-2.5 w-2.5" />
+                          Overdue
+                        </span>
+                      )}
+                      {taskDueSoon && !taskOverdue && (
+                        <span className="text-[10px] text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded font-medium flex items-center gap-0.5">
+                          <Clock className="h-2.5 w-2.5" />
+                          Soon
+                        </span>
+                      )}
+                      {task.dueDate && !taskOverdue && !taskDueSoon && (
+                        <span className="text-xs text-muted-foreground">
+                          {new Date(task.dueDate).toLocaleDateString("en-US", {
+                            month: "short",
+                            day: "numeric",
+                          })}
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2 text-muted-foreground">
+                        {task._count.subtasks > 0 && (
+                          <span className="flex items-center gap-0.5 text-[10px]">
+                            <ListChecks className="h-3 w-3" />
+                            {task._count.subtasks}
+                          </span>
+                        )}
+                        {task._count.comments > 0 && (
+                          <span className="flex items-center gap-0.5 text-[10px]">
+                            <MessageSquare className="h-3 w-3" />
+                            {task._count.comments}
+                          </span>
+                        )}
+                        {task._count.attachments > 0 && (
+                          <span className="flex items-center gap-0.5 text-[10px]">
+                            <Paperclip className="h-3 w-3" />
+                            {task._count.attachments}
+                          </span>
+                        )}
+                      </div>
+                      {task.assignee && (
+                        <div className="flex items-center gap-1.5 text-xs">
+                          <AvatarInitials
+                            name={task.assignee.name}
+                            className="h-5 w-5 text-[10px]"
+                          />
+                          <span className="text-muted-foreground">
+                            {task.assignee.name}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
       )}
 

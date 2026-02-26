@@ -1,23 +1,36 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useSession, signOut } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { AvatarInitials } from "@/components/shared/badges";
+import { User, Lock, LogOut, Shield, UserCircle, Mail } from "lucide-react";
 
 export default function AccountPage() {
   const { data: session } = useSession();
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (newPassword !== confirmPassword) {
+      toast.error("New passwords do not match");
+      return;
+    }
+
+    if (newPassword.length < 8) {
+      toast.error("Password must be at least 8 characters");
+      return;
+    }
+
     setLoading(true);
     const res = await fetch("/api/account", {
       method: "PATCH",
@@ -29,6 +42,7 @@ export default function AccountPage() {
       toast.success("Password changed successfully");
       setCurrentPassword("");
       setNewPassword("");
+      setConfirmPassword("");
     } else {
       const err = await res.json();
       toast.error(err.error || "Failed to change password");
@@ -37,62 +51,109 @@ export default function AccountPage() {
 
   if (!session?.user) return null;
 
+  const isAdmin = session.user.role === "ADMIN";
+
   return (
     <div className="max-w-lg mx-auto space-y-6">
-      <h1 className="text-2xl font-bold text-[#0A2342]">Account</h1>
+      <div className="flex items-center gap-2">
+        <User className="h-6 w-6 text-[#0F4C8A]" />
+        <h1 className="text-2xl font-bold text-[#0A2342]">Account</h1>
+      </div>
 
       <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Profile</CardTitle>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base">Profile</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent>
           <div className="flex items-center gap-4">
             <AvatarInitials
               name={session.user.name}
               className="h-16 w-16 text-xl"
             />
-            <div>
-              <h2 className="text-lg font-semibold">{session.user.name}</h2>
-              <p className="text-sm text-muted-foreground">
-                {session.user.email}
-              </p>
-              <Badge variant="secondary" className="mt-1">
-                {session.user.role}
-              </Badge>
+            <div className="flex-1 min-w-0">
+              <h2 className="text-lg font-semibold text-[#0A2342]">
+                {session.user.name}
+              </h2>
+              <div className="flex items-center gap-1.5 text-sm text-muted-foreground mt-0.5">
+                <Mail className="h-3.5 w-3.5" />
+                <span className="truncate">{session.user.email}</span>
+              </div>
+              <div className="mt-2">
+                <span
+                  className={`inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full ${
+                    isAdmin
+                      ? "bg-[#CFE8FF] text-[#0A2342]"
+                      : "bg-gray-100 text-gray-600"
+                  }`}
+                >
+                  {isAdmin ? (
+                    <>
+                      <Shield className="h-2.5 w-2.5" /> Admin
+                    </>
+                  ) : (
+                    <>
+                      <UserCircle className="h-2.5 w-2.5" /> Member
+                    </>
+                  )}
+                </span>
+              </div>
             </div>
           </div>
         </CardContent>
       </Card>
 
       <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Change Password</CardTitle>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base flex items-center gap-2">
+            <Lock className="h-4 w-4 text-muted-foreground" />
+            Change Password
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleChangePassword} className="space-y-4">
             <div className="space-y-2">
-              <Label>Current Password</Label>
+              <Label className="text-sm">Current Password</Label>
               <Input
                 type="password"
                 value={currentPassword}
                 onChange={(e) => setCurrentPassword(e.target.value)}
+                placeholder="Enter current password"
                 required
               />
             </div>
+            <Separator />
             <div className="space-y-2">
-              <Label>New Password</Label>
+              <Label className="text-sm">New Password</Label>
               <Input
                 type="password"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="Min. 8 characters"
                 required
                 minLength={8}
               />
             </div>
+            <div className="space-y-2">
+              <Label className="text-sm">Confirm New Password</Label>
+              <Input
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="Re-enter new password"
+                required
+                minLength={8}
+              />
+              {confirmPassword && newPassword !== confirmPassword && (
+                <p className="text-xs text-red-500">Passwords do not match</p>
+              )}
+            </div>
             <Button
               type="submit"
-              disabled={loading}
-              className="bg-[#0F4C8A] hover:bg-[#0D3B73]"
+              disabled={
+                loading ||
+                (confirmPassword !== "" && newPassword !== confirmPassword)
+              }
+              className="w-full bg-[#0F4C8A] hover:bg-[#0D3B73]"
             >
               {loading ? "Changing…" : "Change Password"}
             </Button>
@@ -100,15 +161,24 @@ export default function AccountPage() {
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="border-red-200">
         <CardContent className="p-4">
-          <Button
-            variant="outline"
-            className="w-full text-red-600 hover:text-red-700"
-            onClick={() => signOut({ callbackUrl: "/login" })}
-          >
-            Sign Out
-          </Button>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-red-700">Sign Out</p>
+              <p className="text-xs text-muted-foreground">
+                End your current session
+              </p>
+            </div>
+            <Button
+              variant="outline"
+              className="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
+              onClick={() => signOut({ callbackUrl: "/login" })}
+            >
+              <LogOut className="h-4 w-4 mr-1.5" />
+              Sign Out
+            </Button>
+          </div>
         </CardContent>
       </Card>
     </div>

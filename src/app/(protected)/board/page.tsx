@@ -11,14 +11,17 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import {
-  StatusBadge,
-  PriorityBadge,
-  AvatarInitials,
-} from "@/components/shared/badges";
+import { PriorityBadge, AvatarInitials } from "@/components/shared/badges";
 import { TaskDetailDialog } from "@/components/tasks/task-detail-dialog";
 import { CreateTaskDialog } from "@/components/tasks/create-task-dialog";
-import { Plus, Search } from "lucide-react";
+import {
+  Plus,
+  Search,
+  Columns3,
+  AlertTriangle,
+  Clock,
+  Paperclip,
+} from "lucide-react";
 import { toast } from "sonner";
 
 interface Sprint {
@@ -39,12 +42,22 @@ interface BoardTask {
 }
 
 const COLUMNS = [
-  { key: "BACKLOG", label: "Backlog", color: "bg-gray-200" },
-  { key: "TODO", label: "To Do", color: "bg-blue-200" },
-  { key: "IN_PROGRESS", label: "In Progress", color: "bg-yellow-200" },
-  { key: "IN_REVIEW", label: "In Review", color: "bg-purple-200" },
-  { key: "DONE", label: "Done", color: "bg-green-200" },
-  { key: "BLOCKED", label: "Blocked", color: "bg-red-200" },
+  { key: "BACKLOG", label: "Backlog", dot: "bg-gray-400", bg: "bg-gray-50" },
+  { key: "TODO", label: "To Do", dot: "bg-blue-400", bg: "bg-blue-50" },
+  {
+    key: "IN_PROGRESS",
+    label: "In Progress",
+    dot: "bg-yellow-400",
+    bg: "bg-yellow-50",
+  },
+  {
+    key: "IN_REVIEW",
+    label: "In Review",
+    dot: "bg-purple-400",
+    bg: "bg-purple-50",
+  },
+  { key: "DONE", label: "Done", dot: "bg-green-400", bg: "bg-green-50" },
+  { key: "BLOCKED", label: "Blocked", dot: "bg-red-400", bg: "bg-red-50" },
 ];
 
 export default function BoardPage() {
@@ -62,7 +75,6 @@ export default function BoardPage() {
       .then((r) => r.json())
       .then((data: Sprint[]) => {
         setSprints(data);
-        // Default to active sprint
         const now = new Date();
         const active = data.find(
           (s) => new Date(s.startDate) <= now && new Date(s.endDate) >= now,
@@ -109,11 +121,27 @@ export default function BoardPage() {
   const getColumnTasks = (status: string) =>
     tasks.filter((t) => t.status === status);
 
+  const isOverdue = (dueDate: string | null, status: string) => {
+    if (!dueDate || status === "DONE") return false;
+    return new Date(dueDate) < new Date();
+  };
+
+  const isDueSoon = (dueDate: string | null, status: string) => {
+    if (!dueDate || status === "DONE") return false;
+    const due = new Date(dueDate);
+    const now = new Date();
+    const diff = due.getTime() - now.getTime();
+    return diff > 0 && diff < 3 * 24 * 60 * 60 * 1000;
+  };
+
   return (
     <div className="space-y-4">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-        <h1 className="text-2xl font-bold text-[#0A2342]">Board</h1>
+        <div className="flex items-center gap-2">
+          <Columns3 className="h-6 w-6 text-[#0F4C8A]" />
+          <h1 className="text-2xl font-bold text-[#0A2342]">Board</h1>
+        </div>
         <div className="flex-1" />
         <div className="flex items-center gap-2 flex-wrap">
           <div className="relative">
@@ -147,91 +175,194 @@ export default function BoardPage() {
         </div>
       </div>
 
-      {/* Board columns */}
-      <div className="flex gap-4 overflow-x-auto pb-4">
-        {COLUMNS.map((col) => {
-          const colTasks = getColumnTasks(col.key);
-          return (
+      {/* Loading skeleton */}
+      {loading ? (
+        <div className="flex gap-4 overflow-x-auto pb-4">
+          {COLUMNS.map((col) => (
             <div key={col.key} className="flex-shrink-0 w-72">
               <div className="flex items-center gap-2 mb-3">
-                <div className={`h-3 w-3 rounded-full ${col.color}`} />
-                <h3 className="font-semibold text-sm text-[#0A2342]">
-                  {col.label}
-                </h3>
-                <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
-                  {colTasks.length}
-                </span>
+                <div className={`h-3 w-3 rounded-full ${col.dot}`} />
+                <div className="h-4 w-20 bg-gray-200 rounded animate-pulse" />
               </div>
-              <div className="space-y-2 min-h-[200px]">
-                {colTasks.map((task) => (
-                  <Card
-                    key={task.id}
-                    className="cursor-pointer hover:shadow-md transition-shadow"
-                    onClick={() => {
-                      setSelectedTaskId(task.id);
-                      setDetailOpen(true);
-                    }}
+              <div className="space-y-2">
+                {[1, 2].map((i) => (
+                  <div
+                    key={i}
+                    className="bg-white rounded-xl border p-4 space-y-3 animate-pulse"
                   >
-                    <CardContent className="p-3 space-y-2">
-                      <p className="text-sm font-medium leading-tight">
-                        {task.title}
-                      </p>
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <PriorityBadge priority={task.priority} />
-                        {task.dueDate && (
-                          <span className="text-xs text-muted-foreground">
-                            {new Date(task.dueDate).toLocaleDateString()}
-                          </span>
-                        )}
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                          {task._count.subtasks > 0 && (
-                            <span>📋{task._count.subtasks}</span>
-                          )}
-                          {task._count.comments > 0 && (
-                            <span>💬{task._count.comments}</span>
-                          )}
-                          {task._count.attachments > 0 && (
-                            <span>📎{task._count.attachments}</span>
-                          )}
-                        </div>
-                        {task.assignee && (
-                          <AvatarInitials
-                            name={task.assignee.name}
-                            className="h-6 w-6 text-[10px]"
-                          />
-                        )}
-                      </div>
-                      {/* Status change dropdown */}
-                      <Select
-                        value={task.status}
-                        onValueChange={(v) => {
-                          handleStatusChange(task.id, v);
-                        }}
-                      >
-                        <SelectTrigger
-                          className="h-7 text-xs"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {COLUMNS.map((c) => (
-                            <SelectItem key={c.key} value={c.key}>
-                              {c.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </CardContent>
-                  </Card>
+                    <div className="h-4 w-3/4 bg-gray-200 rounded" />
+                    <div className="h-3 w-1/2 bg-gray-100 rounded" />
+                    <div className="h-6 w-16 bg-gray-100 rounded" />
+                  </div>
                 ))}
               </div>
             </div>
-          );
-        })}
-      </div>
+          ))}
+        </div>
+      ) : (
+        /* Board columns */
+        <div className="flex gap-4 overflow-x-auto pb-4">
+          {COLUMNS.map((col) => {
+            const colTasks = getColumnTasks(col.key);
+            return (
+              <div key={col.key} className="flex-shrink-0 w-72">
+                {/* Column header */}
+                <div
+                  className={`flex items-center gap-2 mb-3 px-2 py-1.5 rounded-lg ${col.bg}`}
+                >
+                  <div className={`h-2.5 w-2.5 rounded-full ${col.dot}`} />
+                  <h3 className="font-semibold text-sm text-[#0A2342]">
+                    {col.label}
+                  </h3>
+                  <span className="text-xs font-medium text-muted-foreground bg-white/80 px-1.5 py-0.5 rounded-full ml-auto">
+                    {colTasks.length}
+                  </span>
+                </div>
+
+                {/* Column cards */}
+                <div className="space-y-2 min-h-[200px]">
+                  {colTasks.length === 0 && (
+                    <div className="border-2 border-dashed border-gray-200 rounded-xl p-6 text-center">
+                      <p className="text-xs text-muted-foreground">No tasks</p>
+                    </div>
+                  )}
+                  {colTasks.map((task) => (
+                    <Card
+                      key={task.id}
+                      className="cursor-pointer hover:shadow-lg hover:border-[#1366A6]/30 transition-all duration-200 rounded-xl border-gray-200"
+                      onClick={() => {
+                        setSelectedTaskId(task.id);
+                        setDetailOpen(true);
+                      }}
+                    >
+                      <CardContent className="p-3.5 space-y-2.5">
+                        {/* Title */}
+                        <p className="text-sm font-medium leading-tight text-[#0A2342] line-clamp-2">
+                          {task.title}
+                        </p>
+
+                        {/* Metadata row */}
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <PriorityBadge priority={task.priority} />
+                          {isOverdue(task.dueDate, task.status) && (
+                            <span className="text-[10px] font-medium text-red-700 bg-red-50 px-1.5 py-0.5 rounded flex items-center gap-0.5">
+                              <AlertTriangle className="h-3 w-3" />
+                              Overdue
+                            </span>
+                          )}
+                          {isDueSoon(task.dueDate, task.status) && (
+                            <span className="text-[10px] font-medium text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded flex items-center gap-0.5">
+                              <Clock className="h-3 w-3" />
+                              Soon
+                            </span>
+                          )}
+                          {task.dueDate &&
+                            !isOverdue(task.dueDate, task.status) &&
+                            !isDueSoon(task.dueDate, task.status) && (
+                              <span className="text-[10px] text-muted-foreground">
+                                {new Date(task.dueDate).toLocaleDateString(
+                                  "en-US",
+                                  { month: "short", day: "numeric" },
+                                )}
+                              </span>
+                            )}
+                        </div>
+
+                        {/* Bottom row: counts + assignee + status */}
+                        <div className="flex items-center justify-between pt-1">
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            {task._count.subtasks > 0 && (
+                              <span
+                                className="flex items-center gap-0.5"
+                                title="Subtasks"
+                              >
+                                <svg
+                                  className="h-3.5 w-3.5"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                  stroke="currentColor"
+                                  strokeWidth={2}
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+                                  />
+                                </svg>
+                                {task._count.subtasks}
+                              </span>
+                            )}
+                            {task._count.comments > 0 && (
+                              <span
+                                className="flex items-center gap-0.5"
+                                title="Comments"
+                              >
+                                <svg
+                                  className="h-3.5 w-3.5"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                  stroke="currentColor"
+                                  strokeWidth={2}
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+                                  />
+                                </svg>
+                                {task._count.comments}
+                              </span>
+                            )}
+                            {task._count.attachments > 0 && (
+                              <span
+                                className="flex items-center gap-0.5"
+                                title="Attachments"
+                              >
+                                <Paperclip className="h-3.5 w-3.5" />
+                                {task._count.attachments}
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-2">
+                            {task.assignee && (
+                              <AvatarInitials
+                                name={task.assignee.name}
+                                className="h-6 w-6 text-[10px]"
+                              />
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Status quick-switch */}
+                        <Select
+                          value={task.status}
+                          onValueChange={(v) => {
+                            handleStatusChange(task.id, v);
+                          }}
+                        >
+                          <SelectTrigger
+                            className="h-7 text-xs rounded-lg"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {COLUMNS.map((c) => (
+                              <SelectItem key={c.key} value={c.key}>
+                                {c.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
 
       <TaskDetailDialog
         taskId={selectedTaskId}

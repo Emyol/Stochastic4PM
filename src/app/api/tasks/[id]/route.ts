@@ -154,8 +154,12 @@ export async function DELETE(
     return NextResponse.json({ error: "Task not found" }, { status: 404 });
   }
 
-  // Only ADMIN or reporter can delete
-  if (user.role !== "ADMIN" && task.reporterId !== user.id) {
+  // Only ADMIN, reporter, or assignee can delete
+  if (
+    user.role !== "ADMIN" &&
+    task.reporterId !== user.id &&
+    task.assigneeId !== user.id
+  ) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
@@ -172,7 +176,10 @@ export async function DELETE(
     await prisma.task.delete({ where: { id: sub.id } });
   }
 
-  // Delete main task (cascading relations handled by onDelete: Cascade in schema)
+  // Clean up parent task's own relations before deleting
+  await prisma.statusEvent.deleteMany({ where: { taskId: id } });
+  await prisma.comment.deleteMany({ where: { taskId: id } });
+  await prisma.attachment.deleteMany({ where: { taskId: id } });
   await prisma.task.delete({ where: { id } });
 
   return NextResponse.json({ ok: true });

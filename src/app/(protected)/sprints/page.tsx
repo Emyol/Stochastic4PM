@@ -17,6 +17,7 @@ import {
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { toast } from "sonner";
 import { Plus, Pencil, Trash2, Zap, Calendar } from "lucide-react";
+import { useSprints, revalidateSprints } from "@/hooks/use-data";
 
 interface Sprint {
   id: string;
@@ -29,14 +30,13 @@ interface Sprint {
 export default function SprintsPage() {
   const { data: session } = useSession();
   const router = useRouter();
-  const [sprints, setSprints] = useState<Sprint[]>([]);
+  const { sprints, isLoading: pageLoading, mutate: mutateSprints } = useSprints();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingSprint, setEditingSprint] = useState<Sprint | null>(null);
   const [name, setName] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [loading, setLoading] = useState(false);
-  const [pageLoading, setPageLoading] = useState(true);
 
   // Delete confirmation
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
@@ -46,17 +46,8 @@ export default function SprintsPage() {
   useEffect(() => {
     if (session?.user?.role !== "ADMIN") {
       router.push("/dashboard");
-      return;
     }
-    loadSprints();
   }, [session, router]);
-
-  const loadSprints = async () => {
-    setPageLoading(true);
-    const res = await fetch("/api/sprints");
-    if (res.ok) setSprints(await res.json());
-    setPageLoading(false);
-  };
 
   const openCreate = () => {
     setEditingSprint(null);
@@ -89,7 +80,7 @@ export default function SprintsPage() {
       if (res.ok) {
         toast.success("Sprint updated");
         setDialogOpen(false);
-        loadSprints();
+        mutateSprints(); revalidateSprints();
       } else {
         const err = await res.json();
         toast.error(err.error || "Failed to update sprint");
@@ -103,7 +94,7 @@ export default function SprintsPage() {
       if (res.ok) {
         toast.success("Sprint created");
         setDialogOpen(false);
-        loadSprints();
+        mutateSprints(); revalidateSprints();
       } else {
         const err = await res.json();
         toast.error(err.error || "Failed to create sprint");
@@ -129,7 +120,7 @@ export default function SprintsPage() {
       toast.success("Sprint deleted");
       setConfirmDeleteOpen(false);
       setDeletingSprint(null);
-      loadSprints();
+      mutateSprints(); revalidateSprints();
     } else {
       const err = await res.json();
       toast.error(err.error || "Failed to delete sprint");

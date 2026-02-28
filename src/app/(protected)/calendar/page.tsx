@@ -1,27 +1,21 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useState, useMemo } from "react";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import { TaskDetailDialog } from "@/components/tasks/task-detail-dialog";
+import { useTasks, useSprints, revalidateAllTasks } from "@/hooks/use-data";
 
-interface CalendarTask {
-  id: string;
-  title: string;
-  startDate: string | null;
-  dueDate: string | null;
-  status: string;
-  type: string;
-}
-
-interface CalendarSprint {
-  id: string;
-  name: string;
-  startDate: string;
-  endDate: string;
-}
+const STATUS_COLORS: Record<string, string> = {
+  BACKLOG: "#9CA3AF",
+  TODO: "#60A5FA",
+  IN_PROGRESS: "#FBBF24",
+  IN_REVIEW: "#A78BFA",
+  DONE: "#34D399",
+  BLOCKED: "#F87171",
+};
 
 interface CalendarEvent {
   id: string;
@@ -36,83 +30,63 @@ interface CalendarEvent {
   };
 }
 
-const STATUS_COLORS: Record<string, string> = {
-  BACKLOG: "#9CA3AF",
-  TODO: "#60A5FA",
-  IN_PROGRESS: "#FBBF24",
-  IN_REVIEW: "#A78BFA",
-  DONE: "#34D399",
-  BLOCKED: "#F87171",
-};
-
 export default function CalendarPage() {
-  const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
 
-  const loadEvents = useCallback(async () => {
-    const [tasksRes, sprintsRes] = await Promise.all([
-      fetch("/api/tasks?parentId=null"),
-      fetch("/api/sprints"),
-    ]);
+  // SWR hooks — cached, parallel
+  const { tasks } = useTasks({ parentId: "null" });
+  const { sprints } = useSprints();
 
+  // Derive events from cached data
+  const events = useMemo<CalendarEvent[]>(() => {
     const calEvents: CalendarEvent[] = [];
 
-    if (tasksRes.ok) {
-      const tasks: CalendarTask[] = await tasksRes.json();
-      for (const t of tasks) {
-        const color = STATUS_COLORS[t.status] || "#9CA3AF";
-        if (t.startDate) {
-          calEvents.push({
-            id: `start-${t.id}`,
-            title: `Start: ${t.title}`,
-            start: t.startDate,
-            backgroundColor: color,
-            borderColor: color,
-            extendedProps: { taskId: t.id, type: "task-start" },
-          });
-        }
-        if (t.dueDate) {
-          calEvents.push({
-            id: `due-${t.id}`,
-            title: `Due: ${t.title}`,
-            start: t.dueDate,
-            backgroundColor: color,
-            borderColor: color,
-            extendedProps: { taskId: t.id, type: "task-due" },
-          });
-        }
-      }
-    }
-
-    if (sprintsRes.ok) {
-      const sprints: CalendarSprint[] = await sprintsRes.json();
-      for (const s of sprints) {
+    for (const t of tasks) {
+      const color = STATUS_COLORS[t.status] || "#9CA3AF";
+      if (t.startDate) {
         calEvents.push({
-          id: `sprint-start-${s.id}`,
-          title: `Sprint Start: ${s.name}`,
-          start: s.startDate,
-          backgroundColor: "#052659",
-          borderColor: "#052659",
-          extendedProps: { type: "sprint-start" },
+          id: `start-${t.id}`,
+          title: `Start: ${t.title}`,
+          start: t.startDate,
+          backgroundColor: color,
+          borderColor: color,
+          extendedProps: { taskId: t.id, type: "task-start" },
         });
+      }
+      if (t.dueDate) {
         calEvents.push({
-          id: `sprint-end-${s.id}`,
-          title: `Sprint End: ${s.name}`,
-          start: s.endDate,
-          backgroundColor: "#021024",
-          borderColor: "#021024",
-          extendedProps: { type: "sprint-end" },
+          id: `due-${t.id}`,
+          title: `Due: ${t.title}`,
+          start: t.dueDate,
+          backgroundColor: color,
+          borderColor: color,
+          extendedProps: { taskId: t.id, type: "task-due" },
         });
       }
     }
 
-    setEvents(calEvents);
-  }, []);
+    for (const s of sprints) {
+      calEvents.push({
+        id: `sprint-start-${s.id}`,
+        title: `Sprint Start: ${s.name}`,
+        start: s.startDate,
+        backgroundColor: "#052659",
+        borderColor: "#052659",
+        extendedProps: { type: "sprint-start" },
+      });
+      calEvents.push({
+        id: `sprint-end-${s.id}`,
+        title: `Sprint End: ${s.name}`,
+        start: s.endDate,
+        backgroundColor: "#021024",
+        borderColor: "#021024",
+        extendedProps: { type: "sprint-end" },
+      });
+    }
 
-  useEffect(() => {
-    loadEvents();
-  }, [loadEvents]);
+    return calEvents;
+  }, [tasks, sprints]);
 
   return (
     <div className="space-y-4">
@@ -145,7 +119,7 @@ export default function CalendarPage() {
         taskId={selectedTaskId}
         open={dialogOpen}
         onOpenChange={setDialogOpen}
-        onTaskUpdated={loadEvents}
+        onTaskUpdated={revalidateAllTasks}
       />
     </div>
   );

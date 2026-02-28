@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef, useCallback } from "react";
+import { useState, useRef, useMemo } from "react";
 import {
   Select,
   SelectContent,
@@ -9,23 +9,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { AlertTriangle } from "lucide-react";
+import { useSprints, useTasks } from "@/hooks/use-data";
+import type { TaskSummary } from "@/hooks/use-data";
 
 interface Sprint {
   id: string;
   name: string;
   startDate: string;
   endDate: string;
-}
-
-interface GanttTask {
-  id: string;
-  title: string;
-  startDate: string | null;
-  dueDate: string | null;
-  status: string;
-  priority: string;
-  assignee: { name: string } | null;
-  _count: { subtasks: number };
 }
 
 const STATUS_COLORS: Record<string, string> = {
@@ -38,39 +29,29 @@ const STATUS_COLORS: Record<string, string> = {
 };
 
 export default function GanttPage() {
-  const [sprints, setSprints] = useState<Sprint[]>([]);
   const [selectedSprintId, setSelectedSprintId] = useState("");
-  const [tasks, setTasks] = useState<GanttTask[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    fetch("/api/sprints")
-      .then((r) => r.json())
-      .then((data: Sprint[]) => {
-        setSprints(data);
-        const now = new Date();
-        const active = data.find(
-          (s) => new Date(s.startDate) <= now && new Date(s.endDate) >= now,
-        );
-        if (active) setSelectedSprintId(active.id);
-        else if (data.length > 0) setSelectedSprintId(data[0].id);
-      });
-  }, []);
+  const { sprints } = useSprints();
 
-  const loadTasks = useCallback(async () => {
-    if (!selectedSprintId) return;
-    const res = await fetch(`/api/tasks?sprintId=${selectedSprintId}`);
-    if (res.ok) {
-      setTasks(await res.json());
-    }
-  }, [selectedSprintId]);
+  const effectiveSprintId = useMemo(() => {
+    if (selectedSprintId) return selectedSprintId;
+    const now = new Date();
+    const active = sprints.find(
+      (s) => new Date(s.startDate) <= now && new Date(s.endDate) >= now,
+    );
+    return active?.id || sprints[0]?.id || "";
+  }, [sprints, selectedSprintId]);
 
-  useEffect(() => {
-    loadTasks();
-  }, [loadTasks]);
+  const taskParams = useMemo(() => {
+    if (!effectiveSprintId) return undefined;
+    return { sprintId: effectiveSprintId };
+  }, [effectiveSprintId]);
+
+  const { tasks } = useTasks(taskParams);
 
   // Find sprint date range
-  const sprint = sprints.find((s) => s.id === selectedSprintId);
+  const sprint = sprints.find((s) => s.id === effectiveSprintId);
   const sprintStart = sprint ? new Date(sprint.startDate) : new Date();
   const sprintEnd = sprint ? new Date(sprint.endDate) : new Date();
   const totalDays = Math.max(
@@ -88,7 +69,7 @@ export default function GanttPage() {
     dates.push(d);
   }
 
-  const getBarStyle = (task: GanttTask) => {
+  const getBarStyle = (task: TaskSummary) => {
     const start = task.startDate
       ? new Date(task.startDate)
       : task.dueDate
@@ -119,14 +100,14 @@ export default function GanttPage() {
     };
   };
 
-  const hasMissingDates = (task: GanttTask) => !task.startDate || !task.dueDate;
+  const hasMissingDates = (task: TaskSummary) => !task.startDate || !task.dueDate;
 
   return (
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row sm:items-center gap-3">
         <h1 className="text-2xl font-bold text-[#021024]">Gantt Chart</h1>
         <div className="flex-1" />
-        <Select value={selectedSprintId} onValueChange={setSelectedSprintId}>
+        <Select value={effectiveSprintId} onValueChange={setSelectedSprintId}>
           <SelectTrigger className="w-56">
             <SelectValue placeholder="Select sprint" />
           </SelectTrigger>
@@ -204,7 +185,7 @@ export default function GanttPage() {
                   title={`${task.title} (${task.status})`}
                 >
                   <span className="px-2 truncate text-[10px]">
-                    {task.assignee?.name || ""}
+                    {task.assignees?.[0]?.name || ""}
                   </span>
                 </div>
               </div>

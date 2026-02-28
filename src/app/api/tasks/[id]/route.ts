@@ -171,24 +171,21 @@ export async function DELETE(
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  // Delete subtasks first (cascade in code)
+  // Delete subtasks first (batch transaction)
   const subtaskIds = await prisma.task.findMany({
     where: { parentId: id },
     select: { id: true },
   });
 
-  for (const sub of subtaskIds) {
-    await prisma.statusEvent.deleteMany({ where: { taskId: sub.id } });
-    await prisma.comment.deleteMany({ where: { taskId: sub.id } });
-    await prisma.attachment.deleteMany({ where: { taskId: sub.id } });
-    await prisma.task.delete({ where: { id: sub.id } });
-  }
+  const allIds = [id, ...subtaskIds.map((s) => s.id)];
 
-  // Clean up parent task's own relations before deleting
-  await prisma.statusEvent.deleteMany({ where: { taskId: id } });
-  await prisma.comment.deleteMany({ where: { taskId: id } });
-  await prisma.attachment.deleteMany({ where: { taskId: id } });
-  await prisma.task.delete({ where: { id } });
+  await prisma.$transaction([
+    prisma.statusEvent.deleteMany({ where: { taskId: { in: allIds } } }),
+    prisma.comment.deleteMany({ where: { taskId: { in: allIds } } }),
+    prisma.attachment.deleteMany({ where: { taskId: { in: allIds } } }),
+    prisma.task.deleteMany({ where: { parentId: id } }),
+    prisma.task.delete({ where: { id } }),
+  ]);
 
   return NextResponse.json({ ok: true });
 }

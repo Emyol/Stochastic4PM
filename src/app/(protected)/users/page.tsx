@@ -34,6 +34,7 @@ import {
   UserCircle,
 } from "lucide-react";
 import { AvatarInitials } from "@/components/shared/badges";
+import { useUsers, revalidateUsers } from "@/hooks/use-data";
 
 interface User {
   id: string;
@@ -46,17 +47,14 @@ interface User {
 export default function UsersPage() {
   const { data: session } = useSession();
   const router = useRouter();
-  const [users, setUsers] = useState<User[]>([]);
-  const [dialogMode, setDialogMode] = useState<
-    "create" | "edit" | "reset" | null
-  >(null);
+  const { users, isLoading: pageLoading, mutate: mutateUsers } = useUsers();
+  const [dialogMode, setDialogMode] = useState<"create" | "edit" | "reset" | null>(null);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [role, setRole] = useState("MEMBER");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [pageLoading, setPageLoading] = useState(true);
 
   // Delete confirmation
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
@@ -66,17 +64,8 @@ export default function UsersPage() {
   useEffect(() => {
     if (session?.user?.role !== "ADMIN") {
       router.push("/dashboard");
-      return;
     }
-    loadUsers();
   }, [session, router]);
-
-  const loadUsers = async () => {
-    setPageLoading(true);
-    const res = await fetch("/api/users");
-    if (res.ok) setUsers(await res.json());
-    setPageLoading(false);
-  };
 
   const openCreate = () => {
     setDialogMode("create");
@@ -112,7 +101,7 @@ export default function UsersPage() {
     if (res.ok) {
       toast.success("User created");
       setDialogMode(null);
-      loadUsers();
+      mutateUsers(); revalidateUsers();
     } else {
       const err = await res.json();
       toast.error(err.error || "Failed to create user");
@@ -132,7 +121,7 @@ export default function UsersPage() {
     if (res.ok) {
       toast.success("User updated");
       setDialogMode(null);
-      loadUsers();
+      mutateUsers(); revalidateUsers();
     } else {
       const err = await res.json();
       toast.error(err.error || "Failed to update user");
@@ -174,7 +163,7 @@ export default function UsersPage() {
       toast.success("User deleted");
       setConfirmDeleteOpen(false);
       setDeletingUser(null);
-      loadUsers();
+      mutateUsers(); revalidateUsers();
     } else {
       const err = await res.json();
       toast.error(err.error || "Failed to delete user");

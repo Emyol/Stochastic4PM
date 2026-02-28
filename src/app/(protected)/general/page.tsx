@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -28,6 +28,7 @@ import {
   Paperclip,
   ListChecks,
 } from "lucide-react";
+import { useTasks, revalidateAllTasks } from "@/hooks/use-data";
 
 interface GeneralTask {
   id: string;
@@ -50,32 +51,20 @@ const STATUSES = [
 ];
 
 export default function GeneralPage() {
-  const [tasks, setTasks] = useState<GeneralTask[]>([]);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
-  const [loading, setLoading] = useState(true);
 
-  const loadTasks = useCallback(async () => {
-    setLoading(true);
-    const params = new URLSearchParams({
-      type: "GENERAL_TASK",
-      parentId: "null",
-    });
-    if (search) params.set("q", search);
-    if (statusFilter !== "all") params.set("status", statusFilter);
-    const res = await fetch(`/api/tasks?${params}`);
-    if (res.ok) {
-      setTasks(await res.json());
-    }
-    setLoading(false);
+  const taskParams = useMemo(() => {
+    const p: Record<string, string> = { type: "GENERAL_TASK", parentId: "null" };
+    if (search) p.q = search;
+    if (statusFilter !== "all") p.status = statusFilter;
+    return p;
   }, [search, statusFilter]);
 
-  useEffect(() => {
-    loadTasks();
-  }, [loadTasks]);
+  const { tasks, isLoading: loading, mutate: mutateTasks } = useTasks(taskParams);
 
   const isOverdue = (dueDate: string | null, status: string) => {
     if (!dueDate || status === "DONE") return false;
@@ -386,13 +375,13 @@ export default function GeneralPage() {
         taskId={selectedTaskId}
         open={detailOpen}
         onOpenChange={setDetailOpen}
-        onTaskUpdated={loadTasks}
+        onTaskUpdated={() => { mutateTasks(); revalidateAllTasks(); }}
       />
 
       <CreateTaskDialog
         open={createOpen}
         onOpenChange={setCreateOpen}
-        onCreated={loadTasks}
+        onCreated={() => { mutateTasks(); revalidateAllTasks(); }}
         defaultType="GENERAL_TASK"
       />
     </div>

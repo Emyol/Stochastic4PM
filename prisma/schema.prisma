@@ -97,6 +97,9 @@ model Task {
   @@index([sprintId])
   @@index([type])
   @@index([parentId])
+  @@index([reporterId])
+  @@index([dueDate])
+  @@index([createdAt])
 }
 
 model Comment {

@@ -94,8 +94,10 @@ export default function GeneralPage() {
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row sm:items-center gap-3">
         <div className="flex items-center gap-2">
-          <ListTodo className="h-6 w-6 text-[#0F4C8A]" />
-          <h1 className="text-2xl font-bold text-[#0A2342]">General Tasks</h1>
+          <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-[#C1E8FF] to-[#e0f3ff]">
+            <ListTodo className="h-4 w-4 text-[#052659]" />
+          </div>
+          <h1 className="text-2xl font-bold text-[#021024] tracking-tight">General Tasks</h1>
           {!loading && (
             <span className="text-sm text-muted-foreground">
               ({tasks.length})
@@ -127,7 +129,7 @@ export default function GeneralPage() {
           </Select>
           <Button
             onClick={() => setCreateOpen(true)}
-            className="bg-gradient-to-r from-[#0F4C8A] to-[#1366A6] hover:from-[#0D3B73] hover:to-[#0F4C8A] shadow-md shadow-[#0F4C8A]/20 hover:shadow-lg hover:shadow-[#0F4C8A]/30 transition-all duration-300"
+            className="bg-gradient-to-r from-[#052659] to-[#5483B3] hover:from-[#021024] hover:to-[#052659] shadow-md shadow-[#052659]/20 hover:shadow-lg hover:shadow-[#052659]/30 transition-all duration-300"
           >
             <Plus className="h-4 w-4 mr-1" />
             Task
@@ -175,7 +177,7 @@ export default function GeneralPage() {
           )}
           <Button
             onClick={() => setCreateOpen(true)}
-            className="bg-gradient-to-r from-[#0F4C8A] to-[#1366A6] hover:from-[#0D3B73] hover:to-[#0F4C8A] shadow-md shadow-[#0F4C8A]/20 transition-all duration-300"
+            className="bg-gradient-to-r from-[#052659] to-[#5483B3] hover:from-[#021024] hover:to-[#052659] shadow-md shadow-[#052659]/20 transition-all duration-300"
           >
             <Plus className="h-4 w-4 mr-1" />
             Create a task
@@ -202,7 +204,7 @@ export default function GeneralPage() {
                 className={`cursor-pointer hover:shadow-md transition-all ${
                   taskOverdue
                     ? "border-red-200 hover:border-red-300"
-                    : "hover:border-[#1366A6]/20"
+                  : "hover:border-[#5483B3]/20 card-hover-lift"
                 }`}
                 onClick={() => {
                   setSelectedTaskId(task.id);
@@ -212,7 +214,7 @@ export default function GeneralPage() {
                 <CardContent className="p-4">
                   {/* Desktop row */}
                   <div className="hidden md:grid md:grid-cols-[1fr_120px_100px_140px_60px_100px] gap-4 items-center">
-                    <span className="text-sm font-medium truncate text-[#0A2342]">
+                    <span className="text-sm font-medium truncate text-[#021024]">
                       {task.title}
                     </span>
                     <StatusBadge status={task.status} />
@@ -300,7 +302,7 @@ export default function GeneralPage() {
                   </div>
                   {/* Mobile card */}
                   <div className="md:hidden space-y-2">
-                    <p className="text-sm font-medium text-[#0A2342]">
+                    <p className="text-sm font-medium text-[#021024]">
                       {task.title}
                     </p>
                     <div className="flex items-center gap-2 flex-wrap">

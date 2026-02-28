@@ -64,7 +64,7 @@ export function AvatarInitials({
   return (
     <div
       className={cn(
-        "flex h-7 w-7 items-center justify-center rounded-full bg-[#1366A6] text-xs font-medium text-white",
+        "flex h-7 w-7 items-center justify-center rounded-full bg-[#5483B3] text-xs font-medium text-white",
         className,
       )}
       title={name}

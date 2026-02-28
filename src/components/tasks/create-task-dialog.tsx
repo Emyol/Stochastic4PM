@@ -155,12 +155,12 @@ export function CreateTaskDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto border-0 shadow-2xl">
-        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#0F4C8A] via-[#1366A6] to-[#4DA0E0] rounded-t-lg" />
+        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#052659] via-[#5483B3] to-[#7DA0CA] rounded-t-lg" />
 
         <DialogHeader className="pt-2">
-          <DialogTitle className="text-lg font-bold text-[#0A2342] flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-[#CFE8FF] to-[#8CC1F0] shadow-sm">
-              <FileText className="h-4 w-4 text-[#0F4C8A]" />
+          <DialogTitle className="text-lg font-bold text-[#021024] flex items-center gap-2">
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-[#C1E8FF] to-[#C1E8FF] shadow-sm">
+              <FileText className="h-4 w-4 text-[#052659]" />
             </div>
             {parentId ? "Create Subtask" : "Create Task"}
           </DialogTitle>
@@ -176,7 +176,7 @@ export function CreateTaskDialog({
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="What needs to be done?"
-              className="h-10 transition-all duration-200 focus:shadow-md focus:shadow-[#1366A6]/10"
+              className="h-10 transition-all duration-200 focus:shadow-md focus:shadow-[#5483B3]/10"
               required
             />
           </div>
@@ -195,7 +195,7 @@ export function CreateTaskDialog({
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Add details, context, or instructions…"
               rows={3}
-              className="resize-none transition-all duration-200 focus:shadow-md focus:shadow-[#1366A6]/10"
+              className="resize-none transition-all duration-200 focus:shadow-md focus:shadow-[#5483B3]/10"
             />
           </div>
 
@@ -224,7 +224,7 @@ export function CreateTaskDialog({
                     <SelectContent>
                       <SelectItem value="SPRINT_TASK">
                         <span className="flex items-center gap-1.5">
-                          <Zap className="h-3 w-3 text-[#1366A6]" />
+                          <Zap className="h-3 w-3 text-[#5483B3]" />
                           Sprint Task
                         </span>
                       </SelectItem>
@@ -371,7 +371,7 @@ export function CreateTaskDialog({
                     </span>
                   </SelectItem>
                   <SelectItem value="everyone">
-                    <span className="flex items-center gap-2 font-medium text-[#0F4C8A]">
+                    <span className="flex items-center gap-2 font-medium text-[#052659]">
                       <Users className="h-3.5 w-3.5" />
                       Everyone ({users.length} members)
                     </span>
@@ -393,7 +393,7 @@ export function CreateTaskDialog({
 
               {isEveryone && (
                 <div className="flex items-start gap-2.5 p-3 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-200/60 mt-2 animate-in fade-in slide-in-from-top-1 duration-200">
-                  <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-[#1366A6] to-[#4DA0E0] shadow-sm flex-shrink-0">
+                  <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-[#5483B3] to-[#7DA0CA] shadow-sm flex-shrink-0">
                     <Users className="h-3.5 w-3.5 text-white" />
                   </div>
                   <div>
@@ -422,7 +422,7 @@ export function CreateTaskDialog({
             <Button
               type="submit"
               disabled={loading}
-              className="bg-gradient-to-r from-[#0F4C8A] to-[#1366A6] hover:from-[#0D3B73] hover:to-[#0F4C8A] shadow-md hover:shadow-lg transition-all duration-300"
+              className="bg-gradient-to-r from-[#052659] to-[#5483B3] hover:from-[#052659] hover:to-[#052659] shadow-md hover:shadow-lg transition-all duration-300"
             >
               {loading ? (
                 <span className="flex items-center gap-2">

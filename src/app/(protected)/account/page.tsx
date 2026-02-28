@@ -56,8 +56,10 @@ export default function AccountPage() {
   return (
     <div className="max-w-lg mx-auto space-y-6">
       <div className="flex items-center gap-2">
-        <User className="h-6 w-6 text-[#0F4C8A]" />
-        <h1 className="text-2xl font-bold text-[#0A2342]">Account</h1>
+        <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-[#C1E8FF] to-[#e0f3ff]">
+          <User className="h-4 w-4 text-[#052659]" />
+        </div>
+        <h1 className="text-2xl font-bold text-[#021024] tracking-tight">Account</h1>
       </div>
 
       <Card>
@@ -71,7 +73,7 @@ export default function AccountPage() {
               className="h-16 w-16 text-xl"
             />
             <div className="flex-1 min-w-0">
-              <h2 className="text-lg font-semibold text-[#0A2342]">
+              <h2 className="text-lg font-semibold text-[#021024]">
                 {session.user.name}
               </h2>
               <div className="flex items-center gap-1.5 text-sm text-muted-foreground mt-0.5">
@@ -82,7 +84,7 @@ export default function AccountPage() {
                 <span
                   className={`inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full ${
                     isAdmin
-                      ? "bg-[#CFE8FF] text-[#0A2342]"
+                      ? "bg-[#C1E8FF] text-[#021024]"
                       : "bg-gray-100 text-gray-600"
                   }`}
                 >
@@ -153,7 +155,7 @@ export default function AccountPage() {
                 loading ||
                 (confirmPassword !== "" && newPassword !== confirmPassword)
               }
-              className="w-full bg-[#0F4C8A] hover:bg-[#0D3B73]"
+              className="w-full bg-[#052659] hover:bg-[#021024]"
             >
               {loading ? "Changing…" : "Change Password"}
             </Button>

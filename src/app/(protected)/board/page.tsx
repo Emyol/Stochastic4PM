@@ -139,8 +139,10 @@ export default function BoardPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center gap-3">
         <div className="flex items-center gap-2">
-          <Columns3 className="h-6 w-6 text-[#0F4C8A]" />
-          <h1 className="text-2xl font-bold text-[#0A2342]">Board</h1>
+          <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-[#C1E8FF] to-[#e0f3ff]">
+            <Columns3 className="h-4 w-4 text-[#052659]" />
+          </div>
+          <h1 className="text-2xl font-bold text-[#021024] tracking-tight">Board</h1>
         </div>
         <div className="flex-1" />
         <div className="flex items-center gap-2 flex-wrap">
@@ -148,13 +150,13 @@ export default function BoardPage() {
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Search tasks…"
-              className="pl-8 w-48"
+              className="pl-8 w-48 rounded-xl border-gray-200/80 bg-white/80 backdrop-blur-sm"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
           <Select value={selectedSprintId} onValueChange={setSelectedSprintId}>
-            <SelectTrigger className="w-48">
+            <SelectTrigger className="w-48 rounded-xl border-gray-200/80 bg-white/80 backdrop-blur-sm">
               <SelectValue placeholder="Select sprint" />
             </SelectTrigger>
             <SelectContent>
@@ -167,7 +169,7 @@ export default function BoardPage() {
           </Select>
           <Button
             onClick={() => setCreateOpen(true)}
-            className="bg-gradient-to-r from-[#0F4C8A] to-[#1366A6] hover:from-[#0D3B73] hover:to-[#0F4C8A] shadow-md shadow-[#0F4C8A]/20 hover:shadow-lg hover:shadow-[#0F4C8A]/30 transition-all duration-300"
+            className="bg-gradient-to-r from-[#052659] to-[#5483B3] hover:from-[#021024] hover:to-[#052659] shadow-md shadow-[#052659]/20 hover:shadow-lg hover:shadow-[#052659]/30 transition-all duration-300 rounded-xl"
           >
             <Plus className="h-4 w-4 mr-1" />
             Task
@@ -211,7 +213,7 @@ export default function BoardPage() {
                   className={`flex items-center gap-2 mb-3 px-2 py-1.5 rounded-lg ${col.bg}`}
                 >
                   <div className={`h-2.5 w-2.5 rounded-full ${col.dot}`} />
-                  <h3 className="font-semibold text-sm text-[#0A2342]">
+                  <h3 className="font-semibold text-sm text-[#021024]">
                     {col.label}
                   </h3>
                   <span className="text-xs font-medium text-muted-foreground bg-white/80 px-1.5 py-0.5 rounded-full ml-auto">
@@ -229,7 +231,7 @@ export default function BoardPage() {
                   {colTasks.map((task) => (
                     <Card
                       key={task.id}
-                      className="cursor-pointer hover:shadow-lg hover:border-[#1366A6]/30 transition-all duration-200 rounded-xl border-gray-200"
+                      className="cursor-pointer hover:shadow-lg hover:border-[#5483B3]/30 transition-all duration-200 rounded-xl border-gray-200/60 glass-card card-hover-lift"
                       onClick={() => {
                         setSelectedTaskId(task.id);
                         setDetailOpen(true);
@@ -237,7 +239,7 @@ export default function BoardPage() {
                     >
                       <CardContent className="p-3.5 space-y-2.5">
                         {/* Title */}
-                        <p className="text-sm font-medium leading-tight text-[#0A2342] line-clamp-2">
+                        <p className="text-sm font-medium leading-tight text-[#021024] line-clamp-2">
                           {task.title}
                         </p>
 

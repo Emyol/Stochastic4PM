@@ -37,9 +37,9 @@ export function Sidebar() {
   const isAdmin = session?.user?.role === "ADMIN";
 
   return (
-    <aside className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0 bg-gradient-to-b from-[#0A2342] via-[#0B2E59] to-[#0A2342] text-[#F1F5F9]">
+    <aside className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0 z-40 bg-gradient-to-b from-[#021024] via-[#052659] to-[#021024] text-[#f0f4f8]">
       {/* Logo */}
-      <div className="flex h-16 items-center px-6 border-b border-[#0D3B73]/60">
+      <div className="flex h-16 items-center px-6 border-b border-[#052659]/60">
         <div className="flex items-center gap-3">
           <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-white/95 to-white/80 shadow-lg shadow-black/20">
             <img
@@ -48,7 +48,7 @@ export function Sidebar() {
               className="h-6 w-6 object-contain"
             />
           </div>
-          <span className="font-bold text-lg tracking-tight bg-gradient-to-r from-white to-[#8CC1F0] bg-clip-text text-transparent">
+          <span className="font-bold text-lg tracking-tight bg-gradient-to-r from-white to-[#C1E8FF] bg-clip-text text-transparent">
             Stochastic4
           </span>
         </div>
@@ -63,19 +63,19 @@ export function Sidebar() {
             className={cn(
               "group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200 relative overflow-hidden",
               pathname === item.href
-                ? "bg-gradient-to-r from-[#1366A6]/40 to-[#1366A6]/20 text-white shadow-lg shadow-[#1366A6]/10"
-                : "text-[#8CC1F0] hover:bg-white/5 hover:text-white hover:translate-x-0.5",
+                ? "bg-gradient-to-r from-[#5483B3]/40 to-[#5483B3]/20 text-white shadow-lg shadow-[#5483B3]/10"
+                : "text-[#7DA0CA] hover:bg-white/5 hover:text-white hover:translate-x-0.5",
             )}
           >
             {pathname === item.href && (
-              <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-gradient-to-b from-[#4DA0E0] to-[#1366A6] rounded-r-full" />
+              <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-gradient-to-b from-[#7DA0CA] to-[#5483B3] rounded-r-full" />
             )}
             <item.icon
               className={cn(
                 "h-5 w-5 transition-all duration-200",
                 pathname === item.href
-                  ? "text-[#4DA0E0]"
-                  : "group-hover:text-[#4DA0E0]",
+                  ? "text-[#7DA0CA]"
+                  : "group-hover:text-[#7DA0CA]",
               )}
             />
             {item.label}
@@ -85,7 +85,7 @@ export function Sidebar() {
         {isAdmin && (
           <>
             <div className="pt-5 pb-2 px-3">
-              <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-[#4DA0E0]/70">
+              <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-[#7DA0CA]/70">
                 Admin
               </p>
             </div>
@@ -96,19 +96,19 @@ export function Sidebar() {
                 className={cn(
                   "group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200 relative overflow-hidden",
                   pathname === item.href
-                    ? "bg-gradient-to-r from-[#1366A6]/40 to-[#1366A6]/20 text-white shadow-lg shadow-[#1366A6]/10"
-                    : "text-[#8CC1F0] hover:bg-white/5 hover:text-white hover:translate-x-0.5",
+                    ? "bg-gradient-to-r from-[#5483B3]/40 to-[#5483B3]/20 text-white shadow-lg shadow-[#5483B3]/10"
+                    : "text-[#7DA0CA] hover:bg-white/5 hover:text-white hover:translate-x-0.5",
                 )}
               >
                 {pathname === item.href && (
-                  <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-gradient-to-b from-[#4DA0E0] to-[#1366A6] rounded-r-full" />
+                  <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-gradient-to-b from-[#7DA0CA] to-[#5483B3] rounded-r-full" />
                 )}
                 <item.icon
                   className={cn(
                     "h-5 w-5 transition-all duration-200",
                     pathname === item.href
-                      ? "text-[#4DA0E0]"
-                      : "group-hover:text-[#4DA0E0]",
+                      ? "text-[#7DA0CA]"
+                      : "group-hover:text-[#7DA0CA]",
                   )}
                 />
                 {item.label}
@@ -119,10 +119,10 @@ export function Sidebar() {
       </nav>
 
       {/* Bottom */}
-      <div className="border-t border-[#0D3B73]/60 p-3 space-y-1">
+      <div className="border-t border-[#052659]/60 p-3 space-y-1">
         {session?.user && (
           <div className="flex items-center gap-3 px-3 py-2 mb-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-[#1366A6] to-[#4DA0E0] text-[10px] font-bold text-white shadow-md">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-[#5483B3] to-[#7DA0CA] text-[10px] font-bold text-white shadow-md">
               {session.user.name
                 ?.split(" ")
                 .map((n: string) => n[0])
@@ -134,7 +134,7 @@ export function Sidebar() {
               <p className="text-xs font-semibold text-white truncate">
                 {session.user.name}
               </p>
-              <p className="text-[10px] text-[#8CC1F0]/60 truncate">
+              <p className="text-[10px] text-[#7DA0CA]/60 truncate">
                 {session.user.role === "ADMIN" ? "Administrator" : "Member"}
               </p>
             </div>
@@ -147,17 +147,17 @@ export function Sidebar() {
             className={cn(
               "group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200",
               pathname === item.href
-                ? "bg-gradient-to-r from-[#1366A6]/40 to-[#1366A6]/20 text-white"
-                : "text-[#8CC1F0] hover:bg-white/5 hover:text-white",
+                ? "bg-gradient-to-r from-[#5483B3]/40 to-[#5483B3]/20 text-white"
+                : "text-[#7DA0CA] hover:bg-white/5 hover:text-white",
             )}
           >
-            <item.icon className="h-5 w-5 transition-all duration-200 group-hover:text-[#4DA0E0]" />
+            <item.icon className="h-5 w-5 transition-all duration-200 group-hover:text-[#7DA0CA]" />
             {item.label}
           </Link>
         ))}
         <button
           onClick={() => signOut({ callbackUrl: "/login" })}
-          className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-[#8CC1F0] hover:bg-red-500/10 hover:text-red-300 transition-all duration-200 group"
+          className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-[#7DA0CA] hover:bg-red-500/10 hover:text-red-300 transition-all duration-200 group"
         >
           <LogOut className="h-5 w-5 transition-all duration-200 group-hover:text-red-400" />
           Sign out
@@ -187,12 +187,12 @@ export function MobileNav() {
           className={cn(
             "flex flex-1 flex-col items-center gap-0.5 py-2.5 text-[10px] font-medium transition-all duration-200 relative",
             pathname === item.href
-              ? "text-[#0F4C8A]"
-              : "text-[#64748B] hover:text-[#0F4C8A]",
+              ? "text-[#052659]"
+              : "text-[#64748B] hover:text-[#052659]",
           )}
         >
           {pathname === item.href && (
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-[2px] bg-gradient-to-r from-[#1366A6] to-[#4DA0E0] rounded-b-full" />
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-[2px] bg-gradient-to-r from-[#5483B3] to-[#7DA0CA] rounded-b-full" />
           )}
           <item.icon
             className={cn(

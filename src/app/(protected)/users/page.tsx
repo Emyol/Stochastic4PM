@@ -187,8 +187,10 @@ export default function UsersPage() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Users className="h-6 w-6 text-[#0F4C8A]" />
-          <h1 className="text-2xl font-bold text-[#0A2342]">Users</h1>
+          <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-[#C1E8FF] to-[#e0f3ff]">
+            <Users className="h-4 w-4 text-[#052659]" />
+          </div>
+          <h1 className="text-2xl font-bold text-[#021024] tracking-tight">Users</h1>
           {!pageLoading && (
             <span className="text-sm text-muted-foreground">
               ({users.length})
@@ -197,7 +199,7 @@ export default function UsersPage() {
         </div>
         <Button
           onClick={openCreate}
-          className="bg-[#0F4C8A] hover:bg-[#0D3B73]"
+          className="bg-[#052659] hover:bg-[#021024]"
         >
           <Plus className="h-4 w-4 mr-1" />
           User
@@ -235,12 +237,12 @@ export default function UsersPage() {
                 />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <h3 className="font-semibold text-[#0A2342]">
+                    <h3 className="font-semibold text-[#021024]">
                       {user.name}
                     </h3>
                     <Badge
                       variant={user.role === "ADMIN" ? "default" : "secondary"}
-                      className={`text-[10px] ${user.role === "ADMIN" ? "bg-[#0F4C8A]" : ""}`}
+                      className={`text-[10px] ${user.role === "ADMIN" ? "bg-[#052659]" : ""}`}
                     >
                       {user.role === "ADMIN" ? (
                         <span className="flex items-center gap-1">
@@ -253,7 +255,7 @@ export default function UsersPage() {
                       )}
                     </Badge>
                     {user.id === session?.user?.id && (
-                      <span className="text-[10px] text-[#0F4C8A] bg-[#CFE8FF] px-1.5 py-0.5 rounded-full font-medium">
+                      <span className="text-[10px] text-[#052659] bg-[#C1E8FF] px-1.5 py-0.5 rounded-full font-medium">
                         You
                       </span>
                     )}
@@ -370,7 +372,7 @@ export default function UsersPage() {
               <Button
                 type="submit"
                 disabled={loading}
-                className="bg-[#0F4C8A] hover:bg-[#0D3B73]"
+                className="bg-[#052659] hover:bg-[#021024]"
               >
                 {loading ? "Creating…" : "Create"}
               </Button>
@@ -420,7 +422,7 @@ export default function UsersPage() {
               <Button
                 type="submit"
                 disabled={loading}
-                className="bg-[#0F4C8A] hover:bg-[#0D3B73]"
+                className="bg-[#052659] hover:bg-[#021024]"
               >
                 {loading ? "Saving…" : "Update"}
               </Button>
@@ -461,7 +463,7 @@ export default function UsersPage() {
               <Button
                 type="submit"
                 disabled={loading}
-                className="bg-[#0F4C8A] hover:bg-[#0D3B73]"
+                className="bg-[#052659] hover:bg-[#021024]"
               >
                 {loading ? "Resetting…" : "Reset Password"}
               </Button>

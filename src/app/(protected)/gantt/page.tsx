@@ -124,7 +124,7 @@ export default function GanttPage() {
   return (
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-        <h1 className="text-2xl font-bold text-[#0A2342]">Gantt Chart</h1>
+        <h1 className="text-2xl font-bold text-[#021024]">Gantt Chart</h1>
         <div className="flex-1" />
         <Select value={selectedSprintId} onValueChange={setSelectedSprintId}>
           <SelectTrigger className="w-56">

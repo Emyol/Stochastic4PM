@@ -415,11 +415,11 @@ export function TaskDetailDialog({
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto p-0 border-0 shadow-2xl">
           {/* Gradient accent bar */}
-          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#0F4C8A] via-[#1366A6] to-[#4DA0E0] rounded-t-lg z-20" />
+          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#052659] via-[#5483B3] to-[#7DA0CA] rounded-t-lg z-20" />
 
           {loading ? (
             <div className="flex items-center justify-center py-16">
-              <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#1366A6] border-t-transparent" />
+              <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#5483B3] border-t-transparent" />
             </div>
           ) : task ? (
             <div className="flex flex-col">
@@ -430,7 +430,7 @@ export function TaskDetailDialog({
                     <StatusBadge status={task.status} />
                     <PriorityBadge priority={task.priority} />
                     {task.type === "SPRINT_TASK" && task.sprint && (
-                      <span className="text-xs text-[#0F4C8A] bg-gradient-to-r from-[#CFE8FF] to-[#E8F4FF] px-2.5 py-0.5 rounded-full font-medium">
+                      <span className="text-xs text-[#052659] bg-gradient-to-r from-[#C1E8FF] to-[#e0f3ff] px-2.5 py-0.5 rounded-full font-medium">
                         {task.sprint.name}
                       </span>
                     )}
@@ -488,7 +488,7 @@ export function TaskDetailDialog({
                       placeholder="Task title"
                     />
                   ) : (
-                    <DialogTitle className="text-xl font-bold text-[#0A2342] leading-tight">
+                    <DialogTitle className="text-xl font-bold text-[#021024] leading-tight">
                       {task.title}
                     </DialogTitle>
                   )}
@@ -516,7 +516,7 @@ export function TaskDetailDialog({
                       size="sm"
                       onClick={saveEdits}
                       disabled={saving || !editTitle.trim()}
-                      className="h-7 bg-gradient-to-r from-[#0F4C8A] to-[#1366A6] hover:from-[#0D3B73] hover:to-[#0F4C8A]"
+                      className="h-7 bg-gradient-to-r from-[#052659] to-[#5483B3] hover:from-[#052659] hover:to-[#052659]"
                     >
                       <Save className="h-3 w-3 mr-1" />
                       {saving ? "Saving…" : "Save"}
@@ -526,7 +526,7 @@ export function TaskDetailDialog({
 
                 {/* Description */}
                 <div>
-                  <h4 className="text-sm font-semibold text-[#0A2342] mb-2 flex items-center gap-2">
+                  <h4 className="text-sm font-semibold text-[#021024] mb-2 flex items-center gap-2">
                     <FileText className="h-4 w-4 text-muted-foreground" />
                     Description
                   </h4>
@@ -536,10 +536,10 @@ export function TaskDetailDialog({
                       onChange={(e) => setEditDescription(e.target.value)}
                       rows={4}
                       placeholder="Add a description…"
-                      className="resize-none transition-all duration-200 focus:shadow-md focus:shadow-[#1366A6]/10"
+                      className="resize-none transition-all duration-200 focus:shadow-md focus:shadow-[#5483B3]/10"
                     />
                   ) : (
-                    <div className="text-sm text-gray-700 whitespace-pre-wrap bg-gradient-to-br from-[#F8FAFC] to-[#F1F5F9] rounded-xl p-4 min-h-[60px] border border-gray-100">
+                    <div className="text-sm text-gray-700 whitespace-pre-wrap bg-gradient-to-br from-[#f5f8fc] to-[#F1F5F9] rounded-xl p-4 min-h-[60px] border border-gray-100">
                       {task.description || (
                         <span className="text-muted-foreground italic">
                           No description
@@ -616,7 +616,7 @@ export function TaskDetailDialog({
                             </span>
                           </SelectItem>
                           <SelectItem value="everyone">
-                            <span className="flex items-center gap-2 font-medium text-[#0F4C8A]">
+                            <span className="flex items-center gap-2 font-medium text-[#052659]">
                               <Users className="h-3.5 w-3.5" />
                               Everyone ({users.length})
                             </span>
@@ -740,7 +740,7 @@ export function TaskDetailDialog({
                 {/* Subtasks */}
                 <div>
                   <div className="flex items-center justify-between mb-3">
-                    <h4 className="text-sm font-semibold text-[#0A2342] flex items-center gap-2">
+                    <h4 className="text-sm font-semibold text-[#021024] flex items-center gap-2">
                       <ListChecks className="h-4 w-4 text-muted-foreground" />
                       Subtasks
                       {subtasksTotal > 0 && (
@@ -754,7 +754,7 @@ export function TaskDetailDialog({
                         size="sm"
                         variant="ghost"
                         onClick={() => setShowAddSubtask(!showAddSubtask)}
-                        className="h-7 text-xs text-[#1366A6] hover:text-[#0D3B73]"
+                        className="h-7 text-xs text-[#5483B3] hover:text-[#052659]"
                       >
                         <Plus className="h-3 w-3 mr-1" />
                         Add subtask
@@ -799,7 +799,7 @@ export function TaskDetailDialog({
                         size="sm"
                         onClick={addSubtask}
                         disabled={creatingSubtask || !subtaskTitle.trim()}
-                        className="h-8 bg-gradient-to-r from-[#0F4C8A] to-[#1366A6] hover:from-[#0D3B73] hover:to-[#0F4C8A]"
+                        className="h-8 bg-gradient-to-r from-[#052659] to-[#5483B3] hover:from-[#052659] hover:to-[#052659]"
                       >
                         {creatingSubtask ? "…" : "Add"}
                       </Button>
@@ -814,12 +814,12 @@ export function TaskDetailDialog({
                           onClick={() =>
                             toggleSubtaskStatus(sub.id, sub.status)
                           }
-                          className="flex w-full items-center gap-2 rounded-xl p-2.5 text-sm hover:bg-[#F8FAFC] transition-all duration-200 text-left group"
+                          className="flex w-full items-center gap-2 rounded-xl p-2.5 text-sm hover:bg-[#f5f8fc] transition-all duration-200 text-left group"
                         >
                           {sub.status === "DONE" ? (
                             <CheckCircle2 className="h-4 w-4 text-green-600 flex-shrink-0" />
                           ) : (
-                            <Circle className="h-4 w-4 text-muted-foreground flex-shrink-0 group-hover:text-[#1366A6] transition-colors" />
+                            <Circle className="h-4 w-4 text-muted-foreground flex-shrink-0 group-hover:text-[#5483B3] transition-colors" />
                           )}
                           <span
                             className={`flex-1 ${
@@ -858,7 +858,7 @@ export function TaskDetailDialog({
                 {/* Attachments */}
                 <div>
                   <div className="flex items-center justify-between mb-3">
-                    <h4 className="text-sm font-semibold text-[#0A2342] flex items-center gap-2">
+                    <h4 className="text-sm font-semibold text-[#021024] flex items-center gap-2">
                       <Paperclip className="h-4 w-4 text-muted-foreground" />
                       Attachments
                       {task.attachments.length > 0 && (
@@ -877,7 +877,7 @@ export function TaskDetailDialog({
                           e.target.value = "";
                         }}
                       />
-                      <div className="flex items-center gap-1 text-xs text-[#1366A6] hover:text-[#0D3B73] font-medium px-2 py-1 rounded-lg hover:bg-[#CFE8FF]/50 transition-all duration-200">
+                      <div className="flex items-center gap-1 text-xs text-[#5483B3] hover:text-[#052659] font-medium px-2 py-1 rounded-lg hover:bg-[#C1E8FF]/50 transition-all duration-200">
                         <Plus className="h-3 w-3" />
                         Upload
                       </div>
@@ -888,7 +888,7 @@ export function TaskDetailDialog({
                       {task.attachments.map((att) => (
                         <div
                           key={att.id}
-                          className="flex items-center gap-2 text-sm p-2.5 bg-gradient-to-r from-[#F8FAFC] to-white rounded-xl border border-gray-100 hover:border-[#1366A6]/20 hover:shadow-sm transition-all duration-200"
+                          className="flex items-center gap-2 text-sm p-2.5 bg-gradient-to-r from-[#f5f8fc] to-white rounded-xl border border-gray-100 hover:border-[#5483B3]/20 hover:shadow-sm transition-all duration-200"
                         >
                           <Paperclip className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                           <span className="flex-1 truncate text-gray-700">
@@ -899,7 +899,7 @@ export function TaskDetailDialog({
                           </span>
                           <a
                             href={`/api/attachments/${att.id}`}
-                            className="p-1 rounded-lg hover:bg-[#CFE8FF] text-[#1366A6] transition-all duration-200"
+                            className="p-1 rounded-lg hover:bg-[#C1E8FF] text-[#5483B3] transition-all duration-200"
                             title="Download"
                           >
                             <Download className="h-4 w-4" />
@@ -928,7 +928,7 @@ export function TaskDetailDialog({
 
                 {/* Comments */}
                 <div>
-                  <h4 className="text-sm font-semibold text-[#0A2342] mb-3 flex items-center gap-2">
+                  <h4 className="text-sm font-semibold text-[#021024] mb-3 flex items-center gap-2">
                     <MessageSquare className="h-4 w-4 text-muted-foreground" />
                     Comments
                     {task.comments.length > 0 && (
@@ -956,13 +956,13 @@ export function TaskDetailDialog({
                             addComment();
                           }
                         }}
-                        className="h-9 transition-all duration-200 focus:shadow-md focus:shadow-[#1366A6]/10"
+                        className="h-9 transition-all duration-200 focus:shadow-md focus:shadow-[#5483B3]/10"
                       />
                       <Button
                         size="sm"
                         onClick={addComment}
                         disabled={submittingComment || !commentBody.trim()}
-                        className="h-9 px-3 bg-gradient-to-r from-[#0F4C8A] to-[#1366A6] hover:from-[#0D3B73] hover:to-[#0F4C8A]"
+                        className="h-9 px-3 bg-gradient-to-r from-[#052659] to-[#5483B3] hover:from-[#052659] hover:to-[#052659]"
                       >
                         <Send className="h-4 w-4" />
                       </Button>
@@ -974,14 +974,14 @@ export function TaskDetailDialog({
                       {task.comments.map((c) => (
                         <div
                           key={c.id}
-                          className="bg-gradient-to-br from-[#F8FAFC] to-[#F1F5F9] rounded-xl p-3 group border border-gray-50 hover:border-gray-100 transition-all duration-200"
+                          className="bg-gradient-to-br from-[#f5f8fc] to-[#F1F5F9] rounded-xl p-3 group border border-gray-50 hover:border-gray-100 transition-all duration-200"
                         >
                           <div className="flex items-center gap-2 mb-1.5">
                             <AvatarInitials
                               name={c.author.name}
                               className="h-6 w-6 text-[10px]"
                             />
-                            <span className="text-sm font-medium text-[#0A2342]">
+                            <span className="text-sm font-medium text-[#021024]">
                               {c.author.name}
                             </span>
                             <span className="text-xs text-muted-foreground">

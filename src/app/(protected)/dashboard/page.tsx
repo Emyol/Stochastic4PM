@@ -14,8 +14,8 @@ import {
   Clock,
   TrendingUp,
   CheckCircle2,
-  BarChart3,
   ArrowRight,
+  BarChart3,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -36,6 +36,66 @@ interface DashboardSprint {
   startDate: string;
   endDate: string;
   _count: { tasks: number };
+}
+
+/* Circular progress ring component */
+function ProgressRing({
+  progress,
+  size = 100,
+  strokeWidth = 8,
+}: {
+  progress: number;
+  size?: number;
+  strokeWidth?: number;
+}) {
+  const radius = (size - strokeWidth) / 2;
+  const circumference = radius * 2 * Math.PI;
+  const offset = circumference - (progress / 100) * circumference;
+
+  return (
+    <div className="relative" style={{ width: size, height: size }}>
+      <svg width={size} height={size} className="-rotate-90">
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          fill="none"
+          stroke="#e0f3ff"
+          strokeWidth={strokeWidth}
+        />
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          fill="none"
+          stroke="url(#progressGradient)"
+          strokeWidth={strokeWidth}
+          strokeLinecap="round"
+          strokeDasharray={circumference}
+          strokeDashoffset={offset}
+          style={{
+            transition: "stroke-dashoffset 1s ease-out",
+          }}
+        />
+        <defs>
+          <linearGradient
+            id="progressGradient"
+            x1="0%"
+            y1="0%"
+            x2="100%"
+            y2="0%"
+          >
+            <stop offset="0%" stopColor="#052659" />
+            <stop offset="100%" stopColor="#5483B3" />
+          </linearGradient>
+        </defs>
+      </svg>
+      <div className="absolute inset-0 flex flex-col items-center justify-center">
+        <span className="text-2xl font-bold text-[#021024]">{progress}%</span>
+        <span className="text-[10px] text-[#64748b] font-medium">done</span>
+      </div>
+    </div>
+  );
 }
 
 export default function DashboardPage() {
@@ -63,7 +123,6 @@ export default function DashboardPage() {
     setLoading(true);
 
     try {
-      // Fetch my tasks
       const myRes = await fetch(
         `/api/tasks?assigneeId=${session.user.id}&parentId=null`,
       );
@@ -81,7 +140,6 @@ export default function DashboardPage() {
         });
       }
 
-      // Fetch sprints for active sprint
       const spRes = await fetch("/api/sprints");
       if (spRes.ok) {
         const sprints: DashboardSprint[] = await spRes.json();
@@ -91,7 +149,6 @@ export default function DashboardPage() {
         );
         setActiveSprint(active || null);
 
-        // Load sprint tasks for progress
         if (active) {
           const stRes = await fetch(
             `/api/tasks?sprintId=${active.id}&parentId=null`,
@@ -100,7 +157,6 @@ export default function DashboardPage() {
         }
       }
 
-      // Fetch all tasks for due soon / overdue
       const allRes = await fetch(`/api/tasks?parentId=null`);
       if (allRes.ok) {
         const all: DashboardTask[] = await allRes.json();
@@ -145,7 +201,6 @@ export default function DashboardPage() {
   const completionRate =
     stats.total > 0 ? Math.round((stats.done / stats.total) * 100) : 0;
 
-  // Sprint progress
   const sprintDone = sprintTasks.filter((t) => t.status === "DONE").length;
   const sprintTotal = sprintTasks.length;
   const sprintProgress =
@@ -165,63 +220,111 @@ export default function DashboardPage() {
     setDialogOpen(true);
   };
 
-  // Loading skeleton
+  const greetingTime = () => {
+    const h = new Date().getHours();
+    if (h < 12) return "Good morning";
+    if (h < 18) return "Good afternoon";
+    return "Good evening";
+  };
+
   if (loading) {
     return (
-      <div className="space-y-6">
-        <div>
-          <div className="h-8 w-48 bg-gray-200 rounded animate-pulse" />
-          <div className="h-4 w-64 bg-gray-100 rounded animate-pulse mt-2" />
+      <div className="space-y-8">
+        {/* Skeleton hero */}
+        <div className="animate-pulse space-y-3">
+          <div className="h-10 w-72 bg-gray-200/60 rounded-xl" />
+          <div className="h-5 w-48 bg-gray-100/60 rounded-lg" />
         </div>
-        <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
-          {[1, 2, 3, 4, 5].map((i) => (
-            <Card key={i}>
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between animate-pulse">
-                  <div className="space-y-2">
-                    <div className="h-7 w-10 bg-gray-200 rounded" />
-                    <div className="h-3 w-16 bg-gray-100 rounded" />
-                  </div>
-                  <div className="h-10 w-10 rounded-lg bg-gray-200" />
-                </div>
-              </CardContent>
-            </Card>
+        {/* Skeleton stats */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          {[1, 2, 3, 4].map((i) => (
+            <div
+              key={i}
+              className="glass-card rounded-2xl p-5 animate-pulse"
+            >
+              <div className="h-8 w-12 bg-gray-200/60 rounded mb-2" />
+              <div className="h-4 w-20 bg-gray-100/60 rounded" />
+            </div>
           ))}
         </div>
-        <Card>
-          <CardContent className="p-4 animate-pulse">
-            <div className="h-4 w-32 bg-gray-200 rounded mb-3" />
-            <div className="h-3 bg-gray-100 rounded-full" />
-          </CardContent>
-        </Card>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {[1, 2].map((i) => (
-            <Card key={i}>
-              <CardContent className="p-6 space-y-3 animate-pulse">
-                <div className="h-5 w-32 bg-gray-200 rounded" />
-                {[1, 2, 3].map((j) => (
-                  <div key={j} className="h-10 bg-gray-100 rounded" />
-                ))}
-              </CardContent>
-            </Card>
+        {/* Skeleton cards */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {[1, 2, 3].map((i) => (
+            <div
+              key={i}
+              className="glass-card rounded-2xl p-6 animate-pulse space-y-3"
+            >
+              <div className="h-5 w-28 bg-gray-200/60 rounded" />
+              <div className="h-4 w-full bg-gray-100/60 rounded" />
+              <div className="h-4 w-3/4 bg-gray-100/60 rounded" />
+            </div>
           ))}
         </div>
       </div>
     );
   }
 
+  const statCards = [
+    {
+      label: "Total Tasks",
+      value: stats.total,
+      icon: Target,
+      gradient: "from-[#052659] to-[#5483B3]",
+      iconBg: "from-[#C1E8FF] to-[#e0f3ff]",
+      iconColor: "text-[#052659]",
+      textColor: "text-[#021024]",
+    },
+    {
+      label: "Completed",
+      value: stats.done,
+      icon: CheckCircle2,
+      gradient: "from-emerald-500 to-green-400",
+      iconBg: "from-green-100 to-emerald-50",
+      iconColor: "text-emerald-700",
+      textColor: "text-emerald-700",
+    },
+    {
+      label: "In Progress",
+      value: stats.inProgress,
+      icon: TrendingUp,
+      gradient: "from-amber-500 to-yellow-400",
+      iconBg: "from-yellow-100 to-amber-50",
+      iconColor: "text-amber-700",
+      textColor: "text-amber-700",
+    },
+    {
+      label: "Blocked",
+      value: stats.blocked,
+      icon: AlertTriangle,
+      gradient: "from-red-500 to-rose-400",
+      iconBg: "from-red-100 to-rose-50",
+      iconColor: "text-red-700",
+      textColor: "text-red-700",
+    },
+  ];
+
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-2">
+    <div className="space-y-8">
+      {/* Welcome hero */}
+      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 animate-slide-up opacity-0" style={{ animationFillMode: "forwards" }}>
         <div>
-          <h1 className="text-2xl font-bold text-[#0A2342]">Dashboard</h1>
-          <p className="text-muted-foreground">
-            Welcome back, {session?.user?.name}!
+          <p className="text-sm font-medium text-[#5483B3] tracking-wide uppercase mb-1">
+            {greetingTime()}
+          </p>
+          <h1 className="text-3xl font-bold text-[#021024] tracking-tight">
+            {session?.user?.name?.split(" ")[0]}
+          </h1>
+          <p className="text-sm text-[#64748b] mt-1">
+            {new Date().toLocaleDateString("en-US", {
+              weekday: "long",
+              month: "long",
+              day: "numeric",
+              year: "numeric",
+            })}
           </p>
         </div>
         {overdueTasks.length > 0 && (
-          <div className="flex items-center gap-2 bg-red-50 border border-red-200 text-red-700 px-3 py-1.5 rounded-lg text-sm font-medium">
+          <div className="flex items-center gap-2 bg-red-50/80 border border-red-200/60 text-red-700 px-4 py-2 rounded-xl text-sm font-medium backdrop-blur-sm animate-fade-in">
             <AlertTriangle className="h-4 w-4" />
             {overdueTasks.length} overdue task
             {overdueTasks.length > 1 ? "s" : ""}
@@ -229,164 +332,78 @@ export default function DashboardPage() {
         )}
       </div>
 
-      {/* Stats cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
-        <Card className="relative overflow-hidden group hover:shadow-lg transition-all duration-300">
-          <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-[#0F4C8A] to-[#1366A6]" />
-          <CardContent className="p-4">
+      {/* Stats row + progress ring */}
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+        {statCards.map((card, i) => (
+          <div
+            key={card.label}
+            className={`glass-card rounded-2xl p-5 card-hover-lift gradient-border-top relative overflow-hidden animate-slide-up opacity-0`}
+            style={{ animationDelay: `${0.1 + i * 0.08}s`, animationFillMode: "forwards" }}
+          >
+            <div
+              className="absolute top-0 left-0 right-0 h-[2px]"
+              style={{
+                background: `linear-gradient(90deg, var(--tw-gradient-stops))`,
+              }}
+            />
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-2xl font-bold text-[#0A2342]">
-                  {stats.total}
+                <p className={`text-3xl font-bold ${card.textColor}`}>
+                  {card.value}
                 </p>
-                <p className="text-xs text-muted-foreground font-medium">
-                  Total Tasks
+                <p className="text-xs text-[#64748b] font-medium mt-1">
+                  {card.label}
                 </p>
               </div>
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-[#CFE8FF] to-[#E8F4FF] group-hover:scale-110 transition-transform duration-300">
-                <Target className="h-5 w-5 text-[#0F4C8A]" />
+              <div
+                className={`flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br ${card.iconBg} shadow-sm`}
+              >
+                <card.icon className={`h-5 w-5 ${card.iconColor}`} />
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        ))}
 
-        <Card className="relative overflow-hidden group hover:shadow-lg transition-all duration-300">
-          <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-green-500 to-emerald-400" />
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-2xl font-bold text-green-700">
-                  {stats.done}
-                </p>
-                <p className="text-xs text-muted-foreground font-medium">
-                  Completed
-                </p>
-              </div>
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-green-100 to-emerald-50 group-hover:scale-110 transition-transform duration-300">
-                <CheckCircle2 className="h-5 w-5 text-green-700" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="relative overflow-hidden group hover:shadow-lg transition-all duration-300">
-          <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-yellow-500 to-amber-400" />
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-2xl font-bold text-yellow-700">
-                  {stats.inProgress}
-                </p>
-                <p className="text-xs text-muted-foreground font-medium">
-                  In Progress
-                </p>
-              </div>
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-yellow-100 to-amber-50 group-hover:scale-110 transition-transform duration-300">
-                <TrendingUp className="h-5 w-5 text-yellow-700" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="relative overflow-hidden group hover:shadow-lg transition-all duration-300">
-          <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-orange-500 to-amber-400" />
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-2xl font-bold text-orange-700">
-                  {dueSoon.length}
-                </p>
-                <p className="text-xs text-muted-foreground font-medium">
-                  Due This Week
-                </p>
-              </div>
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-orange-100 to-amber-50 group-hover:scale-110 transition-transform duration-300">
-                <Calendar className="h-5 w-5 text-orange-700" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="relative overflow-hidden col-span-2 lg:col-span-1 group hover:shadow-lg transition-all duration-300">
-          <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-red-500 to-rose-400" />
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-2xl font-bold text-red-700">
-                  {stats.blocked}
-                </p>
-                <p className="text-xs text-muted-foreground font-medium">
-                  Blocked
-                </p>
-              </div>
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-red-100 to-rose-50 group-hover:scale-110 transition-transform duration-300">
-                <AlertTriangle className="h-5 w-5 text-red-700" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        {/* Circular progress */}
+        {stats.total > 0 && (
+          <div
+            className="glass-card rounded-2xl p-5 flex items-center justify-center col-span-2 lg:col-span-1 card-hover-lift animate-slide-up opacity-0"
+            style={{ animationDelay: "0.42s", animationFillMode: "forwards" }}
+          >
+            <ProgressRing progress={completionRate} size={90} strokeWidth={7} />
+          </div>
+        )}
       </div>
 
-      {/* Progress bar */}
-      {stats.total > 0 && (
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2">
-                <BarChart3 className="h-4 w-4 text-[#0F4C8A]" />
-                <span className="text-sm font-semibold text-[#0A2342]">
-                  My Progress
-                </span>
-              </div>
-              <span className="text-sm font-bold text-[#0F4C8A]">
-                {completionRate}%
-              </span>
-            </div>
-            <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
-              <div
-                className="h-full rounded-full transition-all duration-500 bg-gradient-to-r from-[#0F4C8A] to-[#1366A6]"
-                style={{ width: `${completionRate}%` }}
-              />
-            </div>
-            <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
-              <span className="flex items-center gap-1">
-                <span className="h-2 w-2 rounded-full bg-green-500" />
-                {stats.done} done
-              </span>
-              <span className="flex items-center gap-1">
-                <span className="h-2 w-2 rounded-full bg-yellow-500" />
-                {stats.inProgress} in progress
-              </span>
-              <span className="flex items-center gap-1">
-                <span className="h-2 w-2 rounded-full bg-gray-400" />
-                {stats.todo} to do
-              </span>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* Main grid: Sprint + Overdue/Due + My Tasks */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Active Sprint */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center gap-2">
-              <Zap className="h-4 w-4 text-[#1366A6]" />
-              Active Sprint
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-0">
+        <div
+          className="glass-card rounded-2xl overflow-hidden card-hover-lift animate-slide-up opacity-0"
+          style={{ animationDelay: "0.5s", animationFillMode: "forwards" }}
+        >
+          <div className="p-5 border-b border-gray-100/80">
+            <div className="flex items-center gap-2">
+              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-[#C1E8FF] to-[#e0f3ff]">
+                <Zap className="h-3.5 w-3.5 text-[#052659]" />
+              </div>
+              <span className="text-sm font-semibold text-[#021024]">
+                Active Sprint
+              </span>
+            </div>
+          </div>
+          <div className="p-5">
             {activeSprint ? (
-              <div className="space-y-3">
+              <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <h3 className="font-semibold text-[#0A2342]">
+                  <h3 className="font-semibold text-[#021024]">
                     {activeSprint.name}
                   </h3>
-                  <span className="text-xs bg-[#CFE8FF] text-[#0A2342] px-2 py-0.5 rounded-full font-medium">
+                  <span className="text-[10px] bg-[#C1E8FF] text-[#021024] px-2.5 py-1 rounded-full font-semibold">
                     {sprintDaysLeft}d left
                   </span>
                 </div>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs text-[#64748b]">
                   {new Date(activeSprint.startDate).toLocaleDateString(
                     "en-US",
                     { month: "short", day: "numeric" },
@@ -399,66 +416,74 @@ export default function DashboardPage() {
                   })}
                 </p>
                 <div>
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-xs text-muted-foreground">
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="text-xs text-[#64748b]">
                       {sprintDone}/{sprintTotal} tasks done
                     </span>
-                    <span className="text-xs font-semibold text-[#0F4C8A]">
+                    <span className="text-xs font-bold text-[#052659]">
                       {sprintProgress}%
                     </span>
                   </div>
-                  <div className="h-2.5 bg-gray-100 rounded-full overflow-hidden">
+                  <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
                     <div
-                      className="h-full bg-gradient-to-r from-green-500 to-emerald-500 rounded-full transition-all duration-500"
+                      className="h-full bg-gradient-to-r from-emerald-500 to-green-400 rounded-full transition-all duration-700"
                       style={{ width: `${sprintProgress}%` }}
                     />
                   </div>
                 </div>
                 <Link
                   href="/board"
-                  className="inline-flex items-center gap-1 text-xs text-[#1366A6] hover:text-[#0D3B73] font-medium mt-1"
+                  className="inline-flex items-center gap-1.5 text-xs text-[#5483B3] hover:text-[#052659] font-medium transition-colors group"
                 >
-                  View board <ArrowRight className="h-3 w-3" />
+                  View board{" "}
+                  <ArrowRight className="h-3 w-3 group-hover:translate-x-0.5 transition-transform" />
                 </Link>
               </div>
             ) : (
-              <div className="text-center py-6">
-                <Zap className="h-8 w-8 text-muted-foreground/30 mx-auto mb-2" />
-                <p className="text-sm text-muted-foreground">
-                  No active sprint
-                </p>
+              <div className="text-center py-8">
+                <Zap className="h-8 w-8 text-gray-200 mx-auto mb-2" />
+                <p className="text-sm text-[#64748b]">No active sprint</p>
               </div>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         {/* Overdue / Due Soon */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center gap-2">
+        <div
+          className="glass-card rounded-2xl overflow-hidden card-hover-lift animate-slide-up opacity-0"
+          style={{ animationDelay: "0.6s", animationFillMode: "forwards" }}
+        >
+          <div className="p-5 border-b border-gray-100/80">
+            <div className="flex items-center gap-2">
               {overdueTasks.length > 0 ? (
                 <>
-                  <AlertTriangle className="h-4 w-4 text-red-600" />
-                  <span className="text-red-700">
+                  <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-red-100">
+                    <AlertTriangle className="h-3.5 w-3.5 text-red-600" />
+                  </div>
+                  <span className="text-sm font-semibold text-red-700">
                     Overdue ({overdueTasks.length})
                   </span>
                 </>
               ) : (
                 <>
-                  <Clock className="h-4 w-4 text-orange-600" />
-                  Due This Week
+                  <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-orange-100">
+                    <Clock className="h-3.5 w-3.5 text-orange-600" />
+                  </div>
+                  <span className="text-sm font-semibold text-[#021024]">
+                    Due This Week
+                  </span>
                 </>
               )}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-0">
-            {overdueTasks.length > 0 ? (
+            </div>
+          </div>
+          <div className="p-5">
+            {overdueTasks.length > 0 && (
               <div className="space-y-1.5 mb-3">
                 {overdueTasks.slice(0, 4).map((t) => (
                   <button
                     key={t.id}
                     onClick={() => openTask(t.id)}
-                    className="flex w-full items-center gap-3 rounded-lg p-2.5 hover:bg-red-50 text-left transition-colors border border-red-100"
+                    className="flex w-full items-center gap-3 rounded-xl p-2.5 hover:bg-red-50/80 text-left transition-all duration-200 border border-red-100/60"
                   >
                     <AlertTriangle className="h-3.5 w-3.5 text-red-500 flex-shrink-0" />
                     <span className="flex-1 text-sm truncate font-medium">
@@ -473,78 +498,157 @@ export default function DashboardPage() {
                   </button>
                 ))}
               </div>
-            ) : null}
-
+            )}
             {dueSoon.length > 0 ? (
               <div className="space-y-1.5">
                 {overdueTasks.length > 0 && (
-                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mt-2 mb-1">
+                  <p className="text-[10px] font-bold text-[#64748b] uppercase tracking-[0.12em] mt-2 mb-1">
                     Due soon
                   </p>
                 )}
-                {dueSoon.slice(0, overdueTasks.length > 0 ? 3 : 5).map((t) => (
-                  <button
-                    key={t.id}
-                    onClick={() => openTask(t.id)}
-                    className="flex w-full items-center gap-3 rounded-lg p-2.5 hover:bg-muted text-left transition-colors"
-                  >
-                    <StatusBadge status={t.status} />
-                    <span className="flex-1 text-sm truncate">{t.title}</span>
-                    <span className="text-[10px] text-muted-foreground whitespace-nowrap">
-                      {new Date(t.dueDate!).toLocaleDateString("en-US", {
-                        month: "short",
-                        day: "numeric",
-                      })}
-                    </span>
-                  </button>
-                ))}
+                {dueSoon
+                  .slice(0, overdueTasks.length > 0 ? 3 : 5)
+                  .map((t) => (
+                    <button
+                      key={t.id}
+                      onClick={() => openTask(t.id)}
+                      className="flex w-full items-center gap-3 rounded-xl p-2.5 hover:bg-muted/50 text-left transition-all duration-200"
+                    >
+                      <StatusBadge status={t.status} />
+                      <span className="flex-1 text-sm truncate">{t.title}</span>
+                      <span className="text-[10px] text-[#64748b] whitespace-nowrap">
+                        {new Date(t.dueDate!).toLocaleDateString("en-US", {
+                          month: "short",
+                          day: "numeric",
+                        })}
+                      </span>
+                    </button>
+                  ))}
               </div>
             ) : (
               overdueTasks.length === 0 && (
-                <div className="text-center py-6">
-                  <CheckCircle2 className="h-8 w-8 text-green-400 mx-auto mb-2" />
-                  <p className="text-sm text-muted-foreground">
+                <div className="text-center py-8">
+                  <CheckCircle2 className="h-8 w-8 text-green-300 mx-auto mb-2" />
+                  <p className="text-sm text-[#64748b]">
                     No upcoming deadlines
                   </p>
                 </div>
               )
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
+
+        {/* Quick stats breakdown */}
+        <div
+          className="glass-card rounded-2xl overflow-hidden card-hover-lift animate-slide-up opacity-0"
+          style={{ animationDelay: "0.7s", animationFillMode: "forwards" }}
+        >
+          <div className="p-5 border-b border-gray-100/80">
+            <div className="flex items-center gap-2">
+              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-[#C1E8FF] to-[#e0f3ff]">
+                <BarChart3 className="h-3.5 w-3.5 text-[#052659]" />
+              </div>
+              <span className="text-sm font-semibold text-[#021024]">
+                My Breakdown
+              </span>
+            </div>
+          </div>
+          <div className="p-5 space-y-4">
+            {[
+              {
+                label: "Done",
+                val: stats.done,
+                color: "bg-emerald-500",
+                pct:
+                  stats.total > 0
+                    ? Math.round((stats.done / stats.total) * 100)
+                    : 0,
+              },
+              {
+                label: "In Progress",
+                val: stats.inProgress,
+                color: "bg-amber-500",
+                pct:
+                  stats.total > 0
+                    ? Math.round((stats.inProgress / stats.total) * 100)
+                    : 0,
+              },
+              {
+                label: "To Do",
+                val: stats.todo,
+                color: "bg-[#5483B3]",
+                pct:
+                  stats.total > 0
+                    ? Math.round((stats.todo / stats.total) * 100)
+                    : 0,
+              },
+              {
+                label: "Blocked",
+                val: stats.blocked,
+                color: "bg-red-500",
+                pct:
+                  stats.total > 0
+                    ? Math.round((stats.blocked / stats.total) * 100)
+                    : 0,
+              },
+            ].map((item) => (
+              <div key={item.label} className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-[#64748b] font-medium">
+                    {item.label}
+                  </span>
+                  <span className="text-xs font-bold text-[#021024]">
+                    {item.val}
+                  </span>
+                </div>
+                <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                  <div
+                    className={`h-full ${item.color} rounded-full transition-all duration-700`}
+                    style={{ width: `${item.pct}%` }}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
 
       {/* My Tasks */}
-      <Card>
-        <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-base flex items-center gap-2">
-              <ListTodo className="h-4 w-4 text-[#1366A6]" />
+      <div
+        className="glass-card rounded-2xl overflow-hidden animate-slide-up opacity-0"
+        style={{ animationDelay: "0.8s", animationFillMode: "forwards" }}
+      >
+        <div className="p-5 border-b border-gray-100/80 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-[#C1E8FF] to-[#e0f3ff]">
+              <ListTodo className="h-3.5 w-3.5 text-[#052659]" />
+            </div>
+            <span className="text-sm font-semibold text-[#021024]">
               My Tasks
-              {myTasks.length > 0 && (
-                <span className="text-xs font-normal text-muted-foreground">
-                  ({stats.total})
-                </span>
-              )}
-            </CardTitle>
-            <Link
-              href="/general"
-              className="text-xs text-[#1366A6] hover:text-[#0D3B73] font-medium flex items-center gap-1"
-            >
-              View all <ArrowRight className="h-3 w-3" />
-            </Link>
+            </span>
+            {myTasks.length > 0 && (
+              <span className="text-xs text-[#64748b]">({stats.total})</span>
+            )}
           </div>
-        </CardHeader>
-        <CardContent className="pt-0">
+          <Link
+            href="/general"
+            className="text-xs text-[#5483B3] hover:text-[#052659] font-medium flex items-center gap-1 transition-colors group"
+          >
+            View all{" "}
+            <ArrowRight className="h-3 w-3 group-hover:translate-x-0.5 transition-transform" />
+          </Link>
+        </div>
+        <div className="p-5">
           {myTasks.length === 0 ? (
-            <div className="text-center py-8">
-              <ListTodo className="h-8 w-8 text-muted-foreground/30 mx-auto mb-2" />
-              <p className="text-sm text-muted-foreground">
+            <div className="text-center py-10">
+              <ListTodo className="h-10 w-10 text-gray-200 mx-auto mb-3" />
+              <p className="text-sm text-[#64748b]">
                 No tasks assigned to you
               </p>
             </div>
           ) : (
             <div className="space-y-1">
-              {myTasks.map((t) => {
+              {myTasks.map((t, i) => {
                 const taskIsOverdue =
                   t.dueDate &&
                   new Date(t.dueDate) < new Date() &&
@@ -553,19 +657,22 @@ export default function DashboardPage() {
                   <button
                     key={t.id}
                     onClick={() => openTask(t.id)}
-                    className={`flex w-full items-center gap-3 rounded-lg p-3 text-left transition-colors ${
+                    className={`flex w-full items-center gap-3 rounded-xl p-3 text-left transition-all duration-200 group ${
                       taskIsOverdue
-                        ? "hover:bg-red-50 border border-red-100"
-                        : "hover:bg-muted"
+                        ? "hover:bg-red-50/60 border border-red-100/60"
+                        : "hover:bg-gray-50/50"
                     }`}
+                    style={{
+                      animationDelay: `${0.85 + i * 0.04}s`,
+                    }}
                   >
                     <StatusBadge status={t.status} />
                     <PriorityBadge priority={t.priority} />
-                    <span className="flex-1 text-sm truncate font-medium">
+                    <span className="flex-1 text-sm truncate font-medium text-[#021024] group-hover:text-[#052659] transition-colors">
                       {t.title}
                     </span>
                     {t.sprint && (
-                      <span className="hidden sm:inline text-[10px] text-[#0F4C8A] bg-[#CFE8FF] px-2 py-0.5 rounded-full font-medium">
+                      <span className="hidden sm:inline text-[10px] text-[#052659] bg-[#C1E8FF]/60 px-2 py-0.5 rounded-full font-medium">
                         {t.sprint.name}
                       </span>
                     )}
@@ -576,7 +683,7 @@ export default function DashboardPage() {
                       </span>
                     )}
                     {t.dueDate && !taskIsOverdue && (
-                      <span className="text-[10px] text-muted-foreground whitespace-nowrap">
+                      <span className="text-[10px] text-[#64748b] whitespace-nowrap">
                         {new Date(t.dueDate).toLocaleDateString("en-US", {
                           month: "short",
                           day: "numeric",
@@ -588,8 +695,8 @@ export default function DashboardPage() {
               })}
             </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       <TaskDetailDialog
         taskId={selectedTaskId}

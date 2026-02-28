@@ -53,7 +53,7 @@ export function ConfirmDialog({
             onClick={onConfirm}
             disabled={loading}
             className={
-              variant === "destructive" ? "" : "bg-[#0F4C8A] hover:bg-[#0D3B73]"
+              variant === "destructive" ? "" : "bg-[#052659] hover:bg-[#021024]"
             }
           >
             {loading ? "Please wait…" : confirmLabel}

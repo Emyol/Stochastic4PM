@@ -92,16 +92,16 @@ export default function CalendarPage() {
           id: `sprint-start-${s.id}`,
           title: `Sprint Start: ${s.name}`,
           start: s.startDate,
-          backgroundColor: "#0F4C8A",
-          borderColor: "#0F4C8A",
+          backgroundColor: "#052659",
+          borderColor: "#052659",
           extendedProps: { type: "sprint-start" },
         });
         calEvents.push({
           id: `sprint-end-${s.id}`,
           title: `Sprint End: ${s.name}`,
           start: s.endDate,
-          backgroundColor: "#0A2342",
-          borderColor: "#0A2342",
+          backgroundColor: "#021024",
+          borderColor: "#021024",
           extendedProps: { type: "sprint-end" },
         });
       }
@@ -116,7 +116,7 @@ export default function CalendarPage() {
 
   return (
     <div className="space-y-4">
-      <h1 className="text-2xl font-bold text-[#0A2342]">Calendar</h1>
+      <h1 className="text-2xl font-bold text-[#021024]">Calendar</h1>
 
       <div className="bg-white rounded-lg border p-4">
         <FullCalendar

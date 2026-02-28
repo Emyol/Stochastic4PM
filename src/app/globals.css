@@ -46,56 +46,56 @@
   --radius-3xl: calc(var(--radius) + 12px);
   --radius-4xl: calc(var(--radius) + 16px);
 
-  /* Custom blue palette from ui_ux_spec */
-  --color-blue-900: #0a2342;
-  --color-blue-800: #0b2e59;
-  --color-blue-700: #0d3b73;
-  --color-blue-600: #0f4c8a;
-  --color-blue-500: #1366a6;
-  --color-blue-400: #1e7fc6;
-  --color-blue-300: #4da0e0;
-  --color-blue-200: #8cc1f0;
-  --color-blue-100: #cfe8ff;
-  --color-neutral-900: #0b1220;
+  /* User-provided blue palette */
+  --color-blue-900: #021024;
+  --color-blue-800: #031a3a;
+  --color-blue-700: #052659;
+  --color-blue-600: #0a3a7a;
+  --color-blue-500: #5483B3;
+  --color-blue-400: #7DA0CA;
+  --color-blue-300: #9dbdde;
+  --color-blue-200: #C1E8FF;
+  --color-blue-100: #e0f3ff;
+  --color-neutral-900: #021024;
   --color-neutral-700: #334155;
   --color-neutral-500: #64748b;
   --color-neutral-300: #cbd5e1;
-  --color-neutral-100: #f1f5f9;
+  --color-neutral-100: #f0f4f8;
 }
 
 :root {
   --radius: 0.625rem;
-  --background: #f1f5f9;
-  --foreground: #0b1220;
+  --background: #f0f4f8;
+  --foreground: #021024;
   --card: #ffffff;
-  --card-foreground: #0b1220;
+  --card-foreground: #021024;
   --popover: #ffffff;
-  --popover-foreground: #0b1220;
-  --primary: #0f4c8a;
+  --popover-foreground: #021024;
+  --primary: #052659;
   --primary-foreground: #ffffff;
-  --secondary: #cfe8ff;
-  --secondary-foreground: #0a2342;
-  --muted: #f1f5f9;
+  --secondary: #C1E8FF;
+  --secondary-foreground: #021024;
+  --muted: #f0f4f8;
   --muted-foreground: #64748b;
-  --accent: #cfe8ff;
-  --accent-foreground: #0a2342;
+  --accent: #C1E8FF;
+  --accent-foreground: #021024;
   --destructive: #dc2626;
   --border: #cbd5e1;
   --input: #cbd5e1;
-  --ring: #1366a6;
-  --chart-1: #1366a6;
-  --chart-2: #1e7fc6;
-  --chart-3: #4da0e0;
-  --chart-4: #8cc1f0;
-  --chart-5: #cfe8ff;
-  --sidebar: #0a2342;
-  --sidebar-foreground: #f1f5f9;
-  --sidebar-primary: #1366a6;
+  --ring: #5483B3;
+  --chart-1: #052659;
+  --chart-2: #5483B3;
+  --chart-3: #7DA0CA;
+  --chart-4: #C1E8FF;
+  --chart-5: #e0f3ff;
+  --sidebar: #021024;
+  --sidebar-foreground: #f0f4f8;
+  --sidebar-primary: #5483B3;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #0b2e59;
-  --sidebar-accent-foreground: #f1f5f9;
-  --sidebar-border: #0d3b73;
-  --sidebar-ring: #1366a6;
+  --sidebar-accent: #052659;
+  --sidebar-accent-foreground: #f0f4f8;
+  --sidebar-border: #052659;
+  --sidebar-ring: #5483B3;
 }
 
 @layer base {
@@ -107,11 +107,81 @@
   }
 }
 
+/* Dot pattern background */
+.dot-pattern {
+  background-image: radial-gradient(circle, #5483B3 0.6px, transparent 0.6px);
+  background-size: 20px 20px;
+}
+
+/* Grid pattern background */
+.grid-pattern {
+  background-image:
+    linear-gradient(rgba(84, 131, 179, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(84, 131, 179, 0.06) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* Glassmorphism card */
+.glass-card {
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow:
+    0 4px 24px rgba(2, 16, 36, 0.04),
+    0 1px 2px rgba(2, 16, 36, 0.02);
+}
+
+.glass-card-dark {
+  background: rgba(2, 16, 36, 0.6);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(84, 131, 179, 0.15);
+}
+
+/* Card hover lift effect */
+.card-hover-lift {
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.card-hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 8px 32px rgba(2, 16, 36, 0.08),
+    0 2px 8px rgba(84, 131, 179, 0.06);
+}
+
+/* Gradient border accent */
+.gradient-border-top {
+  position: relative;
+}
+.gradient-border-top::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #052659, #5483B3, #7DA0CA);
+  border-radius: 999px 999px 0 0;
+}
+
 /* Custom animations */
 @keyframes fadeIn {
   from {
     opacity: 0;
     transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
   }
   to {
     opacity: 1;
@@ -193,8 +263,21 @@
   }
 }
 
+@keyframes progressFill {
+  from {
+    stroke-dashoffset: var(--progress-circumference, 283);
+  }
+  to {
+    stroke-dashoffset: var(--progress-offset, 0);
+  }
+}
+
 .animate-fade-in {
   animation: fadeIn 0.4s ease-out forwards;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.5s ease-out forwards;
 }
 
 .animate-slide-in-left {
@@ -236,18 +319,11 @@
 }
 
 /* Staggered animation delays for lists */
-.stagger-1 {
-  animation-delay: 0.05s;
-}
-.stagger-2 {
-  animation-delay: 0.1s;
-}
-.stagger-3 {
-  animation-delay: 0.15s;
-}
-.stagger-4 {
-  animation-delay: 0.2s;
-}
-.stagger-5 {
-  animation-delay: 0.25s;
-}
+.stagger-1 { animation-delay: 0.05s; }
+.stagger-2 { animation-delay: 0.1s; }
+.stagger-3 { animation-delay: 0.15s; }
+.stagger-4 { animation-delay: 0.2s; }
+.stagger-5 { animation-delay: 0.25s; }
+.stagger-6 { animation-delay: 0.3s; }
+.stagger-7 { animation-delay: 0.35s; }
+.stagger-8 { animation-delay: 0.4s; }

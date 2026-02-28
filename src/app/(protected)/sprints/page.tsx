@@ -142,12 +142,14 @@ export default function SprintsPage() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Zap className="h-6 w-6 text-[#0F4C8A]" />
-          <h1 className="text-2xl font-bold text-[#0A2342]">Sprints</h1>
+          <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-[#C1E8FF] to-[#e0f3ff]">
+            <Zap className="h-4 w-4 text-[#052659]" />
+          </div>
+          <h1 className="text-2xl font-bold text-[#021024] tracking-tight">Sprints</h1>
         </div>
         <Button
           onClick={openCreate}
-          className="bg-[#0F4C8A] hover:bg-[#0D3B73]"
+          className="bg-[#052659] hover:bg-[#021024]"
         >
           <Plus className="h-4 w-4 mr-1" />
           Sprint
@@ -180,7 +182,7 @@ export default function SprintsPage() {
           <p className="text-muted-foreground mb-4">No sprints yet</p>
           <Button
             onClick={openCreate}
-            className="bg-[#0F4C8A] hover:bg-[#0D3B73]"
+            className="bg-[#052659] hover:bg-[#021024]"
           >
             <Plus className="h-4 w-4 mr-1" />
             Create your first sprint
@@ -211,17 +213,17 @@ export default function SprintsPage() {
             return (
               <Card
                 key={sprint.id}
-                className={`transition-all ${isActive ? "border-[#1366A6] border-2 shadow-sm" : isPast ? "opacity-70" : ""}`}
+                className={`transition-all ${isActive ? "border-[#5483B3] border-2 shadow-sm" : isPast ? "opacity-70" : ""}`}
               >
                 <CardContent className="p-4">
                   <div className="flex items-start gap-4">
                     <div className="flex-1 space-y-2">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <h3 className="font-semibold text-[#0A2342]">
+                        <h3 className="font-semibold text-[#021024]">
                           {sprint.name}
                         </h3>
                         {isActive && (
-                          <span className="text-[10px] bg-[#CFE8FF] text-[#0A2342] px-2 py-0.5 rounded-full font-semibold uppercase tracking-wider">
+                          <span className="text-[10px] bg-[#C1E8FF] text-[#021024] px-2 py-0.5 rounded-full font-semibold uppercase tracking-wider">
                             Active
                           </span>
                         )}
@@ -252,7 +254,7 @@ export default function SprintsPage() {
                         <div>
                           <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden mt-1">
                             <div
-                              className="h-full bg-[#1366A6] rounded-full transition-all"
+                              className="h-full bg-[#5483B3] rounded-full transition-all"
                               style={{ width: `${timeProgress}%` }}
                             />
                           </div>
@@ -336,7 +338,7 @@ export default function SprintsPage() {
               <Button
                 type="submit"
                 disabled={loading}
-                className="bg-[#0F4C8A] hover:bg-[#0D3B73]"
+                className="bg-[#052659] hover:bg-[#021024]"
               >
                 {loading ? "Saving…" : editingSprint ? "Update" : "Create"}
               </Button>
